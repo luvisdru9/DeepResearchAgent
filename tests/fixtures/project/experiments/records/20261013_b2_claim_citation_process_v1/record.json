@@ -1,0 +1,334 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "20261013_b2_claim_citation_process_v1",
+  "revision_of": null,
+  "recorded_at": "2026-10-12T17:27:06Z",
+  "record_type": "quality_evaluation",
+  "status": "completed",
+  "objective": "完成 ResearchBench B2：验证原子 claim 到 citation/Evidence 的映射、引用存在/正确/完整性拆分，以及从 Replay 读取检索过程和资源指标。",
+  "code": {
+    "git_commit": "8cf401eab2fd32d9970ed098f581e37af7345d82",
+    "worktree_state": "dirty",
+    "python_version": "3.11.15",
+    "conda_environment": "deepresearch",
+    "config": {
+      "path": "programmatic AppConfig defaults",
+      "sha256": null,
+      "overrides": {
+        "generation_agents": "rule",
+        "evaluation.provider": "rule",
+        "evaluation.benchmark_path": "data/benchmarks/researchbench_v2/dataset.json",
+        "retrieval.provider": "frozen_per_sample",
+        "network_mode": "offline"
+      }
+    },
+    "dependencies": {
+      "pydantic": "2.13.4",
+      "numpy": "2.4.6",
+      "httpx": "0.28.1"
+    }
+  },
+  "system": {
+    "pipeline": [
+      "Benchmark v2 sample",
+      "frozen Retriever",
+      "rule Reader",
+      "rule Synthesizer",
+      "atomic report-claim extraction",
+      "claim-citation/Evidence assessment",
+      "Replay process/resource scoring"
+    ],
+    "components": [
+      {
+        "name": "AtomicClaimExtractor",
+        "implementation": "Conservative sentence/clause splitting with deterministic content-hash IDs and visible finding-level citation inheritance",
+        "provider": "deterministic_rule",
+        "enabled": true,
+        "notes": "Does not claim full semantic proposition decomposition."
+      },
+      {
+        "name": "CitationAssessment",
+        "implementation": "Separate citation marker existence, valid Evidence pointer, and provisional lexical support",
+        "provider": "lexical_overlap_v2",
+        "enabled": true,
+        "notes": "Contradiction requires LLM Judge or human review."
+      },
+      {
+        "name": "ProcessMetrics",
+        "implementation": "Replay-derived required-source recall, source composition, evidence yield, fallback/retry, stop and resource metrics",
+        "provider": "replay_process_v1",
+        "enabled": true,
+        "notes": "Duplicate SourceDoc and Evidence IDs are deduplicated before counting."
+      }
+    ],
+    "capabilities": {
+      "stable_atomic_claim_ids": true,
+      "claim_to_evidence_mapping": true,
+      "citation_dimensions_separated": true,
+      "hallucination_type_breakdown": true,
+      "replay_resource_metrics": true,
+      "durable_benchmark_artifact": true
+    }
+  },
+  "benchmark": {
+    "id": "researchbench_smoke_v2",
+    "path": "data/benchmarks/researchbench_v2/dataset.json",
+    "sha256": "sha256:c77eaf39103d932ddcf79092e6c835d8a4f47c6f1a420acc00a00a760513dabc",
+    "schema_version": "2.0",
+    "version": "0.1.0",
+    "track": "frozen",
+    "sample_count": 3,
+    "sample_ids": [
+      "bench_001",
+      "bench_002",
+      "bench_003"
+    ],
+    "task_types": [
+      "comparative_research",
+      "fact_qa",
+      "controversy_multihop"
+    ],
+    "snapshot_hashes": {},
+    "status": "draft"
+  },
+  "evaluation": {
+    "protocol": {
+      "repetitions": 1,
+      "network_mode": "offline",
+      "generation": "deterministic rule agents",
+      "evaluator": "rule_claim_support",
+      "metric_protocol": "claim_citation_v2+replay_process_v1",
+      "notes": "This is an engineering regression over draft snapshots, not an expert-calibrated quality result."
+    },
+    "metric_definitions": [
+      {
+        "name": "citation_existence",
+        "category": "evidence",
+        "direction": "higher_better",
+        "unit": "ratio_0_1",
+        "definition": "Atomic evidence-requiring claims with at least one citation marker divided by all such claims.",
+        "implementation_status": "implemented",
+        "limitations": "A marker may still be invalid or unsupported."
+      },
+      {
+        "name": "citation_correctness",
+        "category": "evidence",
+        "direction": "higher_better",
+        "unit": "ratio_0_1",
+        "definition": "Support weight divided by cited atomic claims; supported=1, partial=0.5.",
+        "implementation_status": "provisional",
+        "limitations": "Rule mode uses lexical overlap, not semantic entailment."
+      },
+      {
+        "name": "citation_completeness",
+        "category": "evidence",
+        "direction": "higher_better",
+        "unit": "ratio_0_1",
+        "definition": "Support weight divided by all evidence-requiring atomic claims.",
+        "implementation_status": "provisional",
+        "limitations": "Depends on conservative automatic claim splitting and provisional support labels."
+      },
+      {
+        "name": "evidence_grounding_error_rate",
+        "category": "evidence",
+        "direction": "lower_better",
+        "unit": "ratio_0_1",
+        "definition": "Weighted unsupported, contradicted, miscited, uncited and partially-supported claim rate.",
+        "implementation_status": "provisional",
+        "limitations": "Rule mode cannot independently infer contradiction."
+      },
+      {
+        "name": "required_source_recall",
+        "category": "retrieval",
+        "direction": "higher_better",
+        "unit": "ratio_0_1",
+        "definition": "Required frozen SourceDoc IDs retrieved divided by all required SourceDoc IDs.",
+        "implementation_status": "implemented",
+        "limitations": "Required source IDs are draft author annotations."
+      },
+      {
+        "name": "evidence_yield",
+        "category": "retrieval",
+        "direction": "descriptive",
+        "unit": "evidence_per_unique_document",
+        "definition": "Unique Evidence count divided by unique retrieved SourceDoc count.",
+        "implementation_status": "implemented",
+        "limitations": "More extracted snippets do not necessarily mean higher evidence quality."
+      },
+      {
+        "name": "fallback_retry_stop_resources",
+        "category": "engineering",
+        "direction": "descriptive",
+        "unit": "mixed",
+        "definition": "Fallback events, node retries, failed stages, stop reason, calls, tokens, latency, cost and budget exhaustion read from Replay.",
+        "implementation_status": "implemented",
+        "limitations": "Fallback counting follows explicit component and per-document events, not arbitrary nested booleans."
+      }
+    ]
+  },
+  "results": {
+    "outcome": "b2_engineering_regression_passed_quality_calibration_pending",
+    "engineering_checks": [
+      {
+        "name": "b2_related_tests",
+        "status": "passed",
+        "value": "24 passed",
+        "duration_seconds": 0.42
+      },
+      {
+        "name": "frozen_three_sample_regression",
+        "status": "passed",
+        "value": "3/3 completed",
+        "duration_seconds": 0.04
+      },
+      {
+        "name": "full_test_suite",
+        "status": "passed",
+        "value": "214 passed",
+        "duration_seconds": 2.36
+      }
+    ],
+    "metrics": [
+      {
+        "name": "mean_citation_existence",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Rule-generated reports; 16 atomic claims total."
+      },
+      {
+        "name": "mean_provisional_citation_correctness",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Lexical overlap only; must not be interpreted as calibrated semantic correctness."
+      },
+      {
+        "name": "mean_provisional_citation_completeness",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Rule-generated findings largely copy Evidence wording."
+      },
+      {
+        "name": "mean_evidence_grounding_error_rate",
+        "status": "measured",
+        "value": 0.0,
+        "unit": "ratio_0_1",
+        "notes": "No synthetic error was injected into the three generated reports."
+      },
+      {
+        "name": "mean_required_source_recall",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "All two required snapshot sources were retrieved for each sample."
+      },
+      {
+        "name": "mean_independent_domain_count",
+        "status": "measured",
+        "value": 2.0,
+        "unit": "domains_per_sample",
+        "notes": "Local/repo URL namespaces are counted as source domains in the frozen pilot."
+      },
+      {
+        "name": "mean_primary_source_ratio",
+        "status": "measured",
+        "value": 0.6666666667,
+        "unit": "ratio_0_1",
+        "notes": "Per-sample ratios were 0.5, 1.0 and 0.5."
+      },
+      {
+        "name": "total_fallback_count",
+        "status": "measured",
+        "value": 0,
+        "unit": "events",
+        "notes": "Rule providers were selected directly, so this is not an LLM reliability result."
+      },
+      {
+        "name": "total_retry_count",
+        "status": "measured",
+        "value": 0,
+        "unit": "node_retries",
+        "notes": "All frozen nodes completed first attempt."
+      },
+      {
+        "name": "legacy_fact_accuracy",
+        "status": "invalid",
+        "value": 0.0,
+        "unit": "ratio_0_1",
+        "notes": "Legacy exact-string matching does not recognize paraphrases and is outside B2; weighted claim recall remains pending."
+      }
+    ],
+    "observations": [
+      "All three frozen samples completed offline with required-source recall 1.0 and single_pass_complete.",
+      "The rule reports produce near-copy claims, so lexical citation scores of 1.0 validate wiring rather than real semantic quality.",
+      "Handcrafted tests separately verify supported, contradicted, uncited, miscited and unsupported behavior.",
+      "The benchmark runner now saves a durable per-sample artifact under runs/benchmarks."
+    ]
+  },
+  "comparison": {
+    "group": "researchbench_v2_b2_engineering",
+    "comparability": "partial",
+    "baseline_experiment_id": "20261012_framework_b1_baseline_v1",
+    "changed_variables": [
+      "atomic claim extraction",
+      "claim-citation metric definitions",
+      "required source annotations",
+      "Replay process metrics",
+      "benchmark artifact persistence"
+    ],
+    "notes": "B1 used finding-level legacy metrics, so citation scores are not directly comparable; frozen source retrieval remains comparable."
+  },
+  "artifacts": [
+    {
+      "type": "benchmark_results",
+      "path": "runs/benchmarks/20261012T172706Z_benchmark_evaluation.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "Complete per-sample B2 metrics."
+    },
+    {
+      "type": "replay",
+      "path": "runs/20261012T172706Z_b9eca8250322_replay.json",
+      "run_id": "b9eca8250322",
+      "exists": true,
+      "notes": "bench_001 Replay."
+    },
+    {
+      "type": "replay",
+      "path": "runs/20261012T172706Z_3e0deffa80cd_replay.json",
+      "run_id": "3e0deffa80cd",
+      "exists": true,
+      "notes": "bench_002 Replay."
+    },
+    {
+      "type": "replay",
+      "path": "runs/20261012T172706Z_cf77258c0275_replay.json",
+      "run_id": "cf77258c0275",
+      "exists": true,
+      "notes": "bench_003 Replay."
+    },
+    {
+      "type": "json_schema",
+      "path": "data/benchmarks/researchbench_v2/schemas/benchmark_v2.schema.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "Regenerated schema including required_source_ids."
+    }
+  ],
+  "limitations": [
+    "The three smoke samples and required-source annotations remain draft and have not received independent expert review.",
+    "Lexical overlap is a provisional deterministic support signal and cannot establish semantic entailment or contradiction.",
+    "Automatic clause splitting is conservative and can leave compound propositions inside one claim.",
+    "Legacy fact_accuracy remains exact-string based and returned zero despite relevant reports; weighted claim recall is not yet implemented.",
+    "Only one deterministic repetition was run; no confidence interval or human agreement is available.",
+    "The worktree is dirty, so the git commit alone cannot reconstruct this implementation."
+  ],
+  "next_actions": [
+    "Start B3 by freezing the Judge prompt/profile and preserving complete judge traces.",
+    "Create dual-human claim-level annotations for the three pilot samples before interpreting semantic quality scores.",
+    "Implement weighted benchmark-claim recall to replace legacy exact-string fact_accuracy for v2 samples.",
+    "Calibrate automatic labels against human labels with precision, recall, agreement and Cohen's kappa."
+  ]
+}

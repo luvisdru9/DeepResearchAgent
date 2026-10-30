@@ -1,0 +1,153 @@
+{
+  "schema_version": "synthetic-1.0",
+  "samples": [
+    {
+      "sample_id": "synthetic_sample",
+      "status": "pending",
+      "report_claims": [
+        {
+          "claim_id": "r01",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r02",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r03",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r04",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r05",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r06",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r07",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r08",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r09",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r10",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r11",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r12",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r13",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r14",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r15",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r16",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r17",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r18",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r19",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r20",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r21",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r22",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r23",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r24",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "r25",
+          "label": null,
+          "reason": ""
+        }
+      ],
+      "gold_claims": [
+        {
+          "claim_id": "g01",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "g02",
+          "label": null,
+          "reason": ""
+        },
+        {
+          "claim_id": "g03",
+          "label": null,
+          "reason": ""
+        }
+      ]
+    }
+  ]
+}

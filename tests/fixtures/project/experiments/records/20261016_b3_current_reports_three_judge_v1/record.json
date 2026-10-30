@@ -1,0 +1,465 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "20261016_b3_current_reports_three_judge_v1",
+  "revision_of": "20261016_numeric_retrieval_judge_aggregation_v1",
+  "recorded_at": "2026-10-16T06:13:23Z",
+  "record_type": "quality_evaluation",
+  "status": "partial",
+  "objective": "验证终局状态门禁，使用当前内容质量门禁重新生成 B3 三样本报告，以三次重复 Judge 形成真实多数，并冻结不含预填标签的新人工标注包。",
+  "code": {
+    "git_commit": "3a58e13",
+    "worktree_state": "dirty",
+    "python_version": "3.11.15",
+    "conda_environment": "deepresearch",
+    "config": {
+      "path": "configs/default.yaml",
+      "sha256": "sha256:a1324509b9d8c4b21bdc8d9101c59858bec243bb323e65adf2e8fd4bc6e9dc47",
+      "overrides": {
+        "evaluation.judge_protocol_version": "2.0",
+        "evaluation.judge_repetitions": 3,
+        "evaluation.label_aggregation_policy": "majority_with_conservative_tie",
+        "benchmark.retrieval_provider": "frozen",
+        "benchmark.memory_retrieval_enabled": false,
+        "live_regression.retrieval_provider": "hybrid",
+        "live_regression.top_k": 6,
+        "live_regression.max_rounds": 3,
+        "live_regression.max_llm_calls": 40,
+        "live_regression.max_total_tokens": 120000,
+        "live_regression.max_runtime_seconds": 600
+      }
+    },
+    "dependencies": {
+      "pydantic": "2.13.4",
+      "numpy": "2.4.6",
+      "httpx": "0.28.1"
+    }
+  },
+  "system": {
+    "pipeline": [
+      "current Planner, frozen Retriever and LLM Reader",
+      "finding substance gate and citation validation",
+      "LLM Synthesizer, RedTeam, Blue revision and Verifier",
+      "Verifier-status fail-closed completion semantics",
+      "three repeated Judge v2 calls with majority aggregation",
+      "independent blank A/B packets plus disagreement-only adjudication generation",
+      "Replay 2.0, manifest 1.1 and separate LLM traces"
+    ],
+    "components": [
+      {
+        "name": "Terminal status gate",
+        "implementation": "Preserves an explicit needs_revision/fail outcome when actionable findings are empty because of protocol inconsistency, while still allowing low-risk advisories and deterministically suppressed false findings.",
+        "provider": "deterministic_rule",
+        "enabled": true,
+        "notes": "Covered by an end-to-end Pipeline/Replay/manifest integration test and one bounded live regression."
+      },
+      {
+        "name": "Current B3 report generation",
+        "implementation": "Regenerates all three frozen benchmark reports through the current content and citation quality gates.",
+        "provider": "deepseek-flash+frozen_retrieval",
+        "enabled": true,
+        "notes": "Twenty-five complete report claims replaced the old title and truncated-fragment pilot claims."
+      },
+      {
+        "name": "Three-repeat Judge v2",
+        "implementation": "Runs one Judge profile three times with deterministic claim-order seeds; 2:1 labels use majority and a complete split uses the conservative tie rule.",
+        "provider": "deepseek-flash",
+        "enabled": true,
+        "notes": "Nine Judge calls completed with zero fallback."
+      },
+      {
+        "name": "Human annotation handoff",
+        "implementation": "Freezes separate unlabeled A/B packets and generates self-contained local HTML forms; a post-annotation tool creates a blank third-human packet containing only A/B disagreements.",
+        "provider": "human_pending",
+        "enabled": true,
+        "notes": "Automatic and old human labels are intentionally absent."
+      }
+    ],
+    "capabilities": {
+      "verifier_status_fail_closed": true,
+      "current_report_content_gate": true,
+      "three_judge_majority": true,
+      "blank_independent_annotation_handoff": true,
+      "human_calibration_complete": false,
+      "b4_authorized": false
+    }
+  },
+  "benchmark": {
+    "id": "researchbench_smoke_v2",
+    "path": "data/benchmarks/researchbench_v2/dataset.json",
+    "sha256": "sha256:3d66a2fb6f0dd7fdded77cc697758f00e31d0834f773eaf4860da9a544cbdf7f",
+    "schema_version": "2.0",
+    "version": "0.1.0",
+    "track": "frozen",
+    "sample_count": 3,
+    "sample_ids": [
+      "bench_001",
+      "bench_002",
+      "bench_003"
+    ],
+    "task_types": [
+      "comparative_research",
+      "fact_qa",
+      "controversy_multihop"
+    ],
+    "snapshot_hashes": {},
+    "status": "draft"
+  },
+  "evaluation": {
+    "protocol": {
+      "network_mode": "frozen_generation_and_live_llm_judge",
+      "judge_model": "deepseek-flash",
+      "judge_repetitions": 3,
+      "judge_protocol_fingerprint": "sha256:976a93eeb06bbceff388499b1e29bc6cca67bc14c51aa38bc7a5b24f3becc80a",
+      "label_aggregation_policy": "majority_with_conservative_tie",
+      "human_reference": "pending_two_independent_annotators",
+      "generation_run_ids": [
+        "a6b9cce36b79",
+        "e9a74e981d55",
+        "6037c03966c4"
+      ],
+      "live_status_regression_run_id": "51f62d8791d3",
+      "notes": "Automatic Judge results are engineering diagnostics and cannot authorize B4 without returned human labels."
+    },
+    "metric_definitions": [
+      {
+        "name": "three_judge_label_agreement",
+        "category": "engineering",
+        "direction": "higher_better",
+        "unit": "ratio",
+        "definition": "Pairwise exact label agreement across three Judge repetitions for aligned report or gold claims.",
+        "implementation_status": "implemented"
+      },
+      {
+        "name": "automatic_claim_metrics",
+        "category": "report",
+        "direction": "higher_better",
+        "unit": "ratio",
+        "definition": "Evidence-grounded Judge metrics before human calibration; these are not accuracy against a gold reference.",
+        "implementation_status": "implemented",
+        "limitations": "Cannot be interpreted as calibrated precision or recall until independent labels return."
+      },
+      {
+        "name": "content_gate_invalid_finding_count",
+        "category": "engineering",
+        "direction": "lower_better",
+        "unit": "findings",
+        "definition": "Final key findings classified as title-only, author-only, truncated, or non-propositional by the content gate.",
+        "implementation_status": "implemented"
+      },
+      {
+        "name": "pipeline_resource_usage",
+        "category": "resource",
+        "direction": "descriptive",
+        "unit": "calls_tokens_seconds",
+        "definition": "Generation and Judge call counts, token usage and per-report Pipeline latency.",
+        "implementation_status": "implemented"
+      }
+    ]
+  },
+  "results": {
+    "outcome": "current_reports_and_three_judge_handoff_ready_human_calibration_pending",
+    "engineering_checks": [
+      {
+        "name": "terminal_status_targeted_tests",
+        "status": "passed",
+        "value": "4 passed"
+      },
+      {
+        "name": "evaluation_and_pipeline_targeted_tests",
+        "status": "passed",
+        "value": "20 passed"
+      },
+      {
+        "name": "live_status_regression",
+        "status": "passed",
+        "value": "Replay, manifest and final Verifier all agree on pass/complete/goal_satisfied"
+      },
+      {
+        "name": "b3_generation",
+        "status": "passed",
+        "value": "3/3 reports generated"
+      },
+      {
+        "name": "judge_calls",
+        "status": "passed",
+        "value": "9/9 completed; zero fallback"
+      },
+      {
+        "name": "content_gate",
+        "status": "passed",
+        "value": "0 title/author/truncated key findings across 25 report claims"
+      },
+      {
+        "name": "annotation_packets",
+        "status": "passed",
+        "value": "2 independent frozen packets plus 1 generic adjudication template; all 34 labels per packet blank"
+      },
+      {
+        "name": "disagreement_handoff",
+        "status": "passed",
+        "value": "conditional packet exposes only disputed items and withholds A/B labels and reasons"
+      },
+      {
+        "name": "full_test_suite",
+        "status": "passed",
+        "value": "297 passed"
+      },
+      {
+        "name": "compileall",
+        "status": "passed",
+        "value": "src, tests and scripts compiled successfully"
+      },
+      {
+        "name": "git_diff_check",
+        "status": "passed",
+        "value": "no whitespace errors"
+      },
+      {
+        "name": "human_calibration",
+        "status": "not_run",
+        "value": "waiting for two independent completed files"
+      },
+      {
+        "name": "b4_gate",
+        "status": "blocked",
+        "value": "human reference and calibrated macro precision/recall unavailable"
+      }
+    ],
+    "metrics": [
+      {
+        "name": "automatic_mean_fact_accuracy",
+        "status": "measured",
+        "value": 0.9333333333333333,
+        "unit": "ratio"
+      },
+      {
+        "name": "automatic_mean_weighted_claim_recall",
+        "status": "measured",
+        "value": 0.6711017740429506,
+        "unit": "ratio"
+      },
+      {
+        "name": "automatic_mean_citation_coverage",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio"
+      },
+      {
+        "name": "automatic_mean_citation_precision",
+        "status": "measured",
+        "value": 0.9930555555555556,
+        "unit": "ratio"
+      },
+      {
+        "name": "automatic_mean_hallucination_rate",
+        "status": "measured",
+        "value": 0.006944444444444444,
+        "unit": "ratio"
+      },
+      {
+        "name": "bench_001_claim_agreement",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio"
+      },
+      {
+        "name": "bench_001_gold_agreement",
+        "status": "measured",
+        "value": 0.7777777777777778,
+        "unit": "ratio"
+      },
+      {
+        "name": "bench_002_claim_agreement",
+        "status": "measured",
+        "value": 0.9166666666666666,
+        "unit": "ratio"
+      },
+      {
+        "name": "bench_002_gold_agreement",
+        "status": "measured",
+        "value": 0.3333333333333333,
+        "unit": "ratio"
+      },
+      {
+        "name": "bench_003_claim_agreement",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio"
+      },
+      {
+        "name": "bench_003_gold_agreement",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio"
+      },
+      {
+        "name": "invalid_final_findings",
+        "status": "measured",
+        "value": 0,
+        "unit": "findings"
+      },
+      {
+        "name": "generation_llm_calls",
+        "status": "measured",
+        "value": 33,
+        "unit": "calls"
+      },
+      {
+        "name": "judge_llm_calls",
+        "status": "measured",
+        "value": 9,
+        "unit": "calls"
+      },
+      {
+        "name": "all_trace_input_tokens",
+        "status": "measured",
+        "value": 88093,
+        "unit": "tokens"
+      },
+      {
+        "name": "all_trace_output_tokens",
+        "status": "measured",
+        "value": 28714,
+        "unit": "tokens"
+      },
+      {
+        "name": "generation_latency_sum",
+        "status": "measured",
+        "value": 116.06761398073286,
+        "unit": "seconds"
+      },
+      {
+        "name": "human_report_macro_precision",
+        "status": "not_measured",
+        "value": null,
+        "unit": "ratio"
+      },
+      {
+        "name": "human_report_macro_recall",
+        "status": "not_measured",
+        "value": null,
+        "unit": "ratio"
+      },
+      {
+        "name": "human_gold_macro_precision",
+        "status": "not_measured",
+        "value": null,
+        "unit": "ratio"
+      },
+      {
+        "name": "human_gold_macro_recall",
+        "status": "not_measured",
+        "value": null,
+        "unit": "ratio"
+      }
+    ],
+    "observations": [
+      "Current reports replace the old pilot's bibliographic and truncated extraction fragments with complete propositions.",
+      "bench_002 reliably refuses to claim DeepResearchAgent-specific coverage without system-specific frozen evidence.",
+      "Three repetitions create meaningful 2:1 majority decisions, but bench_002 gold agreement of 0.333 shows that repetition alone does not solve semantic calibration.",
+      "All automatic quality scores remain provisional until independently produced human labels are returned."
+    ]
+  },
+  "comparison": {
+    "group": "researchbench_v2_b3_calibration",
+    "comparability": "partial",
+    "baseline_experiment_id": "20261016_numeric_retrieval_judge_aggregation_v1",
+    "changed_variables": [
+      "reports regenerated with current quality gate",
+      "Judge repetitions increased from two to three",
+      "new blank independent annotation packets",
+      "terminal status consistency live regression"
+    ],
+    "notes": "Benchmark claims and snapshots are unchanged, but regenerated reports and changed repetition count prevent direct metric comparison with the old human packet."
+  },
+  "artifacts": [
+    {
+      "type": "automatic_results",
+      "path": "runs/benchmarks/20261016T061059Z_benchmark_evaluation.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "sha256:d99e4a5760e64a2dccabe3b9cdfb399e91ef7f59cc2cb998b7649c2495670750"
+    },
+    {
+      "type": "live_status_replay",
+      "path": "runs/20261016T060552Z_51f62d8791d3_replay.json",
+      "run_id": "51f62d8791d3",
+      "exists": true,
+      "notes": "sha256:aafe370ac54961597a011174930355b0a36caae8b970ca88858561bf0088a11a"
+    },
+    {
+      "type": "bench_001_replay",
+      "path": "runs/20261016T060759Z_a6b9cce36b79_replay.json",
+      "run_id": "a6b9cce36b79",
+      "exists": true
+    },
+    {
+      "type": "bench_001_report",
+      "path": "runs/reports/20261016T060759Z_a6b9cce36b79/report.md",
+      "run_id": "a6b9cce36b79",
+      "exists": true
+    },
+    {
+      "type": "bench_002_replay",
+      "path": "runs/20261016T060850Z_e9a74e981d55_replay.json",
+      "run_id": "e9a74e981d55",
+      "exists": true
+    },
+    {
+      "type": "bench_002_report",
+      "path": "runs/reports/20261016T060850Z_e9a74e981d55/report.md",
+      "run_id": "e9a74e981d55",
+      "exists": true
+    },
+    {
+      "type": "bench_003_replay",
+      "path": "runs/20261016T060955Z_6037c03966c4_replay.json",
+      "run_id": "6037c03966c4",
+      "exists": true
+    },
+    {
+      "type": "bench_003_report",
+      "path": "runs/reports/20261016T060955Z_6037c03966c4/report.md",
+      "run_id": "6037c03966c4",
+      "exists": true
+    },
+    {
+      "type": "annotation_manifest",
+      "path": "experiments/records/20261016_b3_current_reports_three_judge_v1/annotations/packet_manifest.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "sha256:ad7851dce03d9b15bf237c61702d5441d227eab8081ebf1f2f0108fb6ddf3d49"
+    },
+    {
+      "type": "annotator_a_packet",
+      "path": "experiments/records/20261016_b3_current_reports_three_judge_v1/annotations/annotator_a_pending.json",
+      "run_id": null,
+      "exists": true
+    },
+    {
+      "type": "annotator_b_packet",
+      "path": "experiments/records/20261016_b3_current_reports_three_judge_v1/annotations/annotator_b_pending.json",
+      "run_id": null,
+      "exists": true
+    },
+    {
+      "type": "annotation_forms",
+      "path": "experiments/records/20261016_b3_current_reports_three_judge_v1/annotations/forms",
+      "run_id": null,
+      "exists": true
+    }
+  ],
+  "limitations": [
+    "Human calibration is intentionally incomplete until two independent annotators return the new files.",
+    "The benchmark remains a three-sample draft engineering pilot and is not a released expert gold set.",
+    "Only one Judge model/profile is repeated; three calls measure sampling stability, not cross-model robustness.",
+    "bench_002 frozen sources do not contain DeepResearchAgent-specific definitions, so its quality_unresolved outcome reflects source coverage rather than a generation crash.",
+    "Automatic mean quality scores are model judgments and must not be presented as calibrated human accuracy."
+  ],
+  "next_actions": [
+    "Have annotators A and B independently complete the new HTML forms without viewing old or automatic labels.",
+    "If any label differs, generate a disagreement-only adjudication handoff and obtain a third human decision.",
+    "Run calibration against the three-Judge aggregate and enforce the existing 0.75 macro precision/recall thresholds.",
+    "Keep B4 blocked unless both reference provenance and calibrated automatic metrics pass."
+  ]
+}

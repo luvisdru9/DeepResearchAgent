@@ -1,0 +1,300 @@
+llm:
+  # 主默认配置：日常稳定运行使用，已接入 LLM 的 Agent 默认绑定独立真实 profile。
+  # 命名约定采用 <agent>_<provider>，密钥始终通过环境变量注入。
+  active_profile: planner_deepseek
+  profiles:
+    planner_deepseek:
+      provider: openai_compatible
+      model: deepseek-flash
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      timeout_seconds: 60
+      max_retries: 2
+      # DeepSeek 官方 thinking 示例未传 temperature，避免推理模型拒绝该参数。
+      temperature: null
+      request_options:
+        reasoning_effort: high
+        max_tokens: 2000
+        response_format:
+          type: json_object
+        extra_body:
+          thinking:
+            type: enabled
+    reader_deepseek:
+      provider: openai_compatible
+      model: deepseek-flash
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      timeout_seconds: 60
+      # Reader 逐文档抽取后适度提高输出上限，优先保证合法 JSON 闭合。
+      max_retries: 1
+      temperature: null
+      request_options:
+        # Reader 只做受原文约束的 JSON 抽取，关闭 thinking，避免推理 token
+        # 耗尽输出预算后没有最终 JSON；1600 为证据数组保留闭合空间。
+        reasoning_effort: none
+        max_tokens: 1600
+        response_format:
+          type: json_object
+    synthesizer_deepseek:
+      provider: openai_compatible
+      model: deepseek-flash
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      timeout_seconds: 60
+      max_retries: 2
+      temperature: null
+      request_options:
+        # Synthesizer 与 Blue revision 都要求严格 JSON；关闭 thinking，避免长草稿修订时
+        # 推理 token 耗尽后没有最终正文。
+        reasoning_effort: none
+        max_tokens: 3000
+        response_format:
+          type: json_object
+    redteam_deepseek:
+      provider: openai_compatible
+      model: deepseek-flash
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      timeout_seconds: 60
+      max_retries: 1
+      temperature: null
+      request_options:
+        # RedTeam 输出是受证据约束的固定 JSON；关闭 thinking 可避免推理内容耗尽
+        # max_tokens 后没有最终正文。语义核验仍由模型完成，失败时继续规则回退。
+        reasoning_effort: none
+        max_tokens: 3000
+        response_format:
+          type: json_object
+    evaluator_deepseek:
+      provider: openai_compatible
+      model: deepseek-flash
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      timeout_seconds: 60
+      max_retries: 1
+      temperature: null
+      request_options:
+        reasoning_effort: none
+        max_tokens: 2500
+        response_format:
+          type: json_object
+    # 历史 Flash+Pro 实验 profile，仅用于复现旧记录；当前 judge_profiles 不引用它。
+    evaluator_deepseek_pro:
+      provider: openai_compatible
+      model: deepseek-v4-pro
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      # Pro 高推理模式和逐 claim JSON 可能更慢，只为 Judge 放宽超时。
+      timeout_seconds: 180
+      max_retries: 1
+      temperature: null
+      request_options:
+        reasoning_effort: high
+        # reasoning 与最终逐 claim JSON 共享生成预算，优先避免完整报告评测被截断。
+        max_tokens: 12000
+        response_format:
+          type: json_object
+        extra_body:
+          thinking:
+            type: enabled
+    # 历史 Pro 紧凑探针 profile；当前自动评测已按用户要求切换为双 Flash。
+    # 两个 Pro profile 均保留用于旧实验复现，不参与默认运行。
+    evaluator_deepseek_pro_compact:
+      provider: openai_compatible
+      model: deepseek-v4-pro
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      timeout_seconds: 180
+      max_retries: 1
+      temperature: null
+      request_options:
+        reasoning_effort: none
+        max_tokens: 5000
+        response_format:
+          type: json_object
+    # 用户当前选择将第二 Judge 也切换为 Flash。独立 profile 保留分层重复聚合，
+    # 但实验记录必须说明它不具备跨模型版本独立性。
+    evaluator_deepseek_flash_secondary:
+      provider: openai_compatible
+      model: deepseek-flash
+      base_url: https://api.deepseek.com
+      api_key_env: DEEPSEEK_API_KEY
+      timeout_seconds: 60
+      max_retries: 1
+      temperature: null
+      request_options:
+        reasoning_effort: none
+        max_tokens: 5000
+        response_format:
+          type: json_object
+
+planning:
+  # 改为 llm 后可指定独立 Profile；null 表示使用 llm.active_profile。
+  provider: llm
+  llm_profile: planner_deepseek
+  fallback_to_rule: true
+
+synthesis:
+  # 每个 LLM Agent 都可选择不同 Profile/API，也可显式复用同一个 Profile。
+  provider: llm
+  llm_profile: synthesizer_deepseek
+  fallback_to_rule: true
+
+redteam:
+  # 第一版 LLM RedTeam 同时承担 verifier-style 审查：检查过度推断、弱引用和遗漏视角。
+  provider: llm
+  llm_profile: redteam_deepseek
+  fallback_to_rule: true
+  # Red 发现可操作问题后，由 Synthesizer 作为 Blue 最多修订一次，再进行最终核验。
+  enable_blue_revision: true
+  verify_after_revision: true
+  # 仅当 Verifier 剩下的都是措辞/逻辑，或可安全删除/收窄的引用支持问题时，再修订一次并复核。
+  enable_final_text_revision: true
+  verify_after_final_text_revision: true
+
+reader:
+  # Reader 的 LLM 负责结构化证据抽取，quote/source_id 仍由本地严格校验。
+  provider: llm
+  llm_profile: reader_deepseek
+  fallback_to_rule: true
+  # 仍然逐文档调用 LLM；这里控制每个子任务最多读取多少个检索结果。
+  max_docs_per_call: 4
+  max_evidence_per_doc: 2
+  max_chars_per_doc: 2500
+  target_evidence_per_subtask: 3
+  target_unique_sources_per_subtask: 2
+  max_empty_docs_before_stop: 2
+  enable_gap_recovery: true
+  gap_recovery_max_docs: 2
+
+retrieval:
+  # local 使用 corpus_dir；改为 tavily 后从 api_key_env 指定的环境变量读取密钥。
+  provider: local
+  corpus_dir: data/local_corpus
+  # frozen 轨道由 EvaluationRunner 按样本注入 manifest；普通运行保持 null。
+  frozen_manifest_path: null
+  top_k: 5
+  api_key_env: TAVILY_API_KEY
+  endpoint: https://api.tavily.com/search
+  timeout_seconds: 30
+  search_depth: basic
+  topic: general
+  # Tavily 的清洗正文优先送给 Reader，避免只依赖短搜索摘要。
+  include_raw_content: true
+  include_published_date: true
+  include_domains: []
+  exclude_domains: []
+  language: null
+  diversify_domains: true
+  # 补全搜索结果正文；PDF 即使已有摘要式 raw_content 也会尝试解析完整文件。
+  fetch_full_content: true
+  # 为论文后部的实验表与局限章节保留足够扫描窗口，送入 Reader 的 chunk 数仍受独立上限约束。
+  max_chars_per_doc: 100000
+  # hybrid 会并发检索并允许单个 provider 失败；当前 Tavily 密钥有效后可切换 provider: hybrid。
+  hybrid_providers: [local, tavily]
+  hybrid_candidate_multiplier: 2
+  rerank_enabled: true
+  rerank_provider_weight: 0.55
+  rerank_lexical_weight: 0.35
+  rerank_freshness_weight: 0.10
+  # 可信度只占较小权重，避免权威域名掩盖与查询无关的结果。
+  rerank_credibility_weight: 0.15
+  rerank_primary_source_bonus: 0.10
+  # 实体定向补研时，降低标题/摘要开头未出现目标实体的候选。
+  rerank_entity_anchor_penalty: 0.25
+
+content_safety:
+  # 外部正文始终视为不可信数据。默认仅审计，避免误删讨论 Prompt Injection 的正常资料。
+  enabled: true
+  mode: audit
+  scan_titles: true
+
+tool_calling:
+  # 原生 Tool Calling 仅用于独立补研试点；默认 Pipeline 继续走确定性 Retriever。
+  enabled: false
+  llm_profile: planner_deepseek
+  max_steps: 3
+  max_calls_per_turn: 1
+  max_result_chars: 8000
+
+chunking:
+  # Reader 不再只看到长文开头；分块保留原文字符偏移，并按来源交错送入 Reader。
+  enabled: true
+  max_chars: 2500
+  overlap_chars: 200
+  max_chunks_per_doc: 4
+
+runtime:
+  run_dir: runs
+  report_subdir: reports
+  save_llm_io: true
+  llm_trace_subdir: llm_traces
+  language: zh
+  report_length: medium
+  enable_redteam: true
+  enable_compression: true
+  max_subtasks: 4
+  max_concurrency: 4
+  max_retries: 1
+  node_timeout_seconds: null
+  api_shutdown_grace_seconds: 10
+
+research_loop:
+  # 当前先统一记录首轮 ResearchState；后续启用多轮控制器时再改为 true。
+  enabled: false
+  max_rounds: 1
+  max_follow_up_subtasks: 3
+  min_new_evidence_per_round: 1
+  stop_on_no_progress: true
+  allow_redteam_follow_up: true
+  allow_verifier_follow_up: true
+  reserve_llm_calls_for_finalization: 2
+  prefer_new_sources: true
+  # 补研先扩大候选池，过滤已访问 URL 后再截回 retrieval.top_k。
+  follow_up_candidate_multiplier: 3
+  allow_repeated_sources_when_exhausted: true
+
+memory:
+  # SQLite 仅保存结构化任务状态和 Evidence；LLM 原始输入输出仍由 llm_traces 独立管理。
+  enabled: true
+  sqlite_path: null
+  persist_evidence: true
+  compression_max_evidence: 12
+  compression_max_chars: 12000
+  retrieval_enabled: true
+  retrieval_top_k: 5
+  vector_dimensions: 512
+  min_similarity: 0.05
+  embedding_provider: hashing
+  # 切换为 openai_compatible 时填写实际 Embedding 模型和对应服务；DeepSeek Chat
+  # profile 不自动兼任 Embedding 服务。
+  embedding_model: text-embedding-3-small
+  embedding_base_url: null
+  embedding_api_key_env: OPENAI_API_KEY
+  embedding_timeout_seconds: 30
+  embedding_send_dimensions: true
+  embedding_cache_enabled: true
+  scope_by_domain: true
+  scope_max_age_days: 3650
+  scope_min_query_overlap: 0.05
+
+evaluation:
+  benchmark_path: data/researchbench.json
+  comparison_subdir: comparisons
+  retrieval_comparison_use_memory: false
+  provider: llm
+  llm_profile: evaluator_deepseek
+  # 两个模型分别重复三次，先形成模型内多数，再判断跨模型共识。
+  judge_profiles: [evaluator_deepseek, evaluator_deepseek_flash_secondary]
+  judge_repetitions: 3
+  judge_aggregation_policy: hierarchical_model_consensus
+  judge_min_successful_repetitions_per_profile: 2
+  # Judge prompt/标签协议和随机顺序均被结果产物记录；修改协议必须升级版本。
+  judge_protocol_version: "5.0"
+  judge_shuffle_claims: true
+  judge_random_seed: 20261013
+  fallback_to_rule: true
+  automatic_consensus_min_resolved_rate: 0.85
+  automatic_consensus_min_cross_model_agreement: 0.80
+  automatic_consensus_min_cohen_kappa: 0.60

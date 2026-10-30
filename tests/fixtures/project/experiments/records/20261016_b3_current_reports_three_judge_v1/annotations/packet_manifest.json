@@ -1,0 +1,21 @@
+{
+  "schema_version": "synthetic-1.0",
+  "status": "frozen_pending_human_annotation",
+  "handoff_ready": true,
+  "files": [
+    {
+      "path": "annotator_a_pending.json",
+      "sha256": "8ab10b27ef61dc94a403d37dea9d20445b4fd3f4118f4e388e739e79d512c511"
+    },
+    {
+      "path": "annotator_b_pending.json",
+      "sha256": "8ab10b27ef61dc94a403d37dea9d20445b4fd3f4118f4e388e739e79d512c511"
+    },
+    {
+      "path": "adjudicator_pending.json",
+      "sha256": "8ab10b27ef61dc94a403d37dea9d20445b4fd3f4118f4e388e739e79d512c511"
+    }
+  ],
+  "judge_repetitions": 3,
+  "report_claim_count_per_packet": 25
+}

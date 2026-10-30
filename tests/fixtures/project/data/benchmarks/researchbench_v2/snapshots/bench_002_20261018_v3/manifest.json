@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "snapshot_id": "bench_002_20261018_v3",
+  "sample_id": "bench_002",
+  "benchmark_version": "0.1.0",
+  "captured_at": "2026-10-31T00:00:00Z",
+  "provider": "project_authored_fixture",
+  "queries": [
+    {
+      "id": "fixture_q1",
+      "query": "Synthetic offline query for bench_002",
+      "result_source_ids": [
+        "b002_alce",
+        "b002_ragtruth"
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "source_id": "b002_alce",
+      "path": "documents/b002_alce.json",
+      "content_hash": "sha256:d541ea05072384d27c2aecf7091d778b1cf56e4551302b8d1712269cd8919d7c"
+    },
+    {
+      "source_id": "b002_ragtruth",
+      "path": "documents/b002_ragtruth.json",
+      "content_hash": "sha256:1fcc7b345d56e9c926d162f5b1a6aab214ffd0680295b131fa856125b7278517"
+    }
+  ],
+  "content_hash": "sha256:87e085becd774fae67f065304a43df440a9b889f5ee381ee8fa0ab3123a98bec"
+}

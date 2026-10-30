@@ -1,0 +1,340 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "researchbench_40_engineering",
+  "version": "1.0.0",
+  "source_benchmark": "../../../researchbench_full.json",
+  "existing_sample_ids": [
+    "full_005", "full_006", "full_010",
+    "full_007", "full_009", "full_011", "full_015", "full_018",
+    "full_019", "full_020", "full_021", "full_022", "full_023", "full_024",
+    "full_025", "full_026", "full_027", "full_028", "full_029", "full_030"
+  ],
+  "new_samples": [
+    {
+      "id": "rb40_fact_zh_01",
+      "question": "HTTPS 连接中，证书链验证、主机名校验和前向保密分别解决什么安全问题？",
+      "language": "zh",
+      "domain": "security",
+      "task_type": "fact_qa",
+      "expected_claims": [
+        "证书链验证用于把服务器证书连接到受信任的证书颁发机构并验证签名关系",
+        "主机名校验用于确认服务器证书的身份与用户访问的域名匹配",
+        "前向保密用于限制长期密钥泄露对历史会话密钥的影响"
+      ],
+      "required_sources": ["IETF TLS 或 PKIX 标准", "浏览器或平台官方 HTTPS 验证文档"],
+      "forbidden_hallucinations": ["宣称只要证书链有效就不需要校验主机名", "宣称前向保密可以阻止所有中间人攻击"],
+      "judge_rubric": ["区分三种安全保证", "解释各自威胁模型", "避免把 TLS 描述成绝对安全"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_fact_zh_02",
+      "question": "差分隐私中的 ε 与 δ 分别如何约束隐私损失，组合多个机制时会发生什么？",
+      "language": "zh",
+      "domain": "privacy",
+      "task_type": "fact_qa",
+      "expected_claims": [
+        "ε 控制相邻数据集输出分布之间允许的乘性差异",
+        "δ 表示近似差分隐私中允许超出 ε 约束的小概率失败项",
+        "多次运行差分隐私机制会累积隐私损失并需要组合分析"
+      ],
+      "required_sources": ["差分隐私原始或权威理论资料", "NIST 或同行评审隐私会计资料"],
+      "forbidden_hallucinations": ["宣称 ε 越大隐私保护越强", "宣称差分隐私允许无限次查询而不增加隐私损失"],
+      "judge_rubric": ["准确解释 ε 与 δ", "说明相邻数据集假设", "解释组合而不承诺绝对匿名"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "rb40_fact_en_01",
+      "question": "What guarantees do write-ahead logging and checkpoints provide in database recovery, and what do they not guarantee by themselves?",
+      "language": "en",
+      "domain": "database",
+      "task_type": "fact_qa",
+      "expected_claims": [
+        "write-ahead logging requires relevant log records to become durable before affected data pages are persisted",
+        "recovery can use log records to redo or undo work according to the database recovery design",
+        "checkpoints bound recovery work but do not by themselves provide transaction isolation or application-level correctness"
+      ],
+      "required_sources": ["database system documentation", "authoritative recovery algorithm or textbook material"],
+      "forbidden_hallucinations": ["claiming a checkpoint makes all in-flight transactions committed", "claiming WAL alone guarantees every ACID property"],
+      "judge_rubric": ["separate WAL from checkpoints", "connect durability to recovery", "state guarantees that remain outside recovery logging"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_fact_en_02",
+      "question": "What do precision, recall, and calibration measure in binary classification, and why are they not interchangeable?",
+      "language": "en",
+      "domain": "machine_learning",
+      "task_type": "fact_qa",
+      "expected_claims": [
+        "precision measures the fraction of predicted positives that are true positives",
+        "recall measures the fraction of actual positives recovered by the classifier",
+        "calibration compares predicted probabilities with observed outcome frequencies and is distinct from thresholded classification performance"
+      ],
+      "required_sources": ["statistical learning documentation", "peer-reviewed calibration research"],
+      "forbidden_hallucinations": ["claiming high accuracy implies good calibration", "claiming precision and recall are independent of the decision threshold"],
+      "judge_rubric": ["define all three quantities", "distinguish ranking or threshold metrics from probability quality", "explain dependence on class prevalence or threshold where relevant"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_fact_en_03",
+      "question": "How does DNSSEC authenticate DNS data, and which threats remain outside its protection?",
+      "language": "en",
+      "domain": "networking_security",
+      "task_type": "fact_qa",
+      "expected_claims": [
+        "DNSSEC uses signed DNS records and a chain of trust to authenticate data origin and integrity",
+        "DNSSEC validation can detect forged or modified signed responses when the trust chain is valid",
+        "DNSSEC does not encrypt DNS queries and does not by itself protect endpoint or authoritative-server availability"
+      ],
+      "required_sources": ["IETF DNSSEC RFCs", "operator or standards-body deployment guidance"],
+      "forbidden_hallucinations": ["claiming DNSSEC encrypts DNS traffic", "claiming DNSSEC prevents all DNS denial-of-service attacks"],
+      "judge_rubric": ["explain signatures and chain of trust", "separate integrity from confidentiality", "state operational limitations"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_fact_en_04",
+      "question": "What ordering information do vector clocks provide in distributed systems, and what are their limitations?",
+      "language": "en",
+      "domain": "distributed_systems",
+      "task_type": "fact_qa",
+      "expected_claims": [
+        "vector-clock comparison can identify a happened-before relation between represented events",
+        "incomparable vectors indicate concurrency rather than a total ordering",
+        "vector metadata grows with the number of tracked participants and requires an explicit participant-management strategy"
+      ],
+      "required_sources": ["original logical-clock research", "distributed-systems authoritative material"],
+      "forbidden_hallucinations": ["claiming vector clocks provide a unique total order", "claiming incomparable vectors prove events occurred at exactly the same physical time"],
+      "judge_rubric": ["define causal comparison", "explain concurrency", "cover metadata and membership limitations"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_fact_en_05",
+      "question": "What security properties do WebAuthn passkeys provide, and which account-recovery risks remain?",
+      "language": "en",
+      "domain": "security",
+      "task_type": "fact_qa",
+      "expected_claims": [
+        "WebAuthn uses public-key credentials scoped to a relying party rather than a reusable shared password",
+        "origin and relying-party binding provide resistance to conventional credential phishing",
+        "account recovery and credential synchronization introduce separate trust and operational considerations"
+      ],
+      "required_sources": ["W3C WebAuthn specification", "FIDO Alliance or platform security documentation"],
+      "forbidden_hallucinations": ["claiming passkeys eliminate every form of account takeover", "claiming all passkey deployments use identical recovery and synchronization models"],
+      "judge_rubric": ["explain public-key and origin binding", "distinguish authentication from recovery", "state deployment-dependent limitations"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_compare_en_01",
+      "question": "How should an engineering team choose between REST over HTTP and gRPC for service-to-service APIs?",
+      "language": "en",
+      "domain": "software_architecture",
+      "task_type": "comparative_research",
+      "expected_claims": [
+        "REST commonly uses HTTP resource semantics and broadly interoperable text representations",
+        "gRPC uses service definitions and Protocol Buffers with generated clients and supports streaming patterns",
+        "the choice depends on browser interoperability, schema governance, streaming needs, observability, and operational constraints"
+      ],
+      "required_sources": ["official HTTP and gRPC documentation", "production engineering guidance with stated context"],
+      "forbidden_hallucinations": ["claiming gRPC is always faster for every workload", "claiming REST has no schema or streaming options"],
+      "judge_rubric": ["compare protocol and interface models", "cover performance and interoperability conditions", "give workload-dependent selection criteria"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_compare_en_02",
+      "question": "How do row-oriented and column-oriented database storage layouts differ for transactional and analytical workloads?",
+      "language": "en",
+      "domain": "database",
+      "task_type": "comparative_research",
+      "expected_claims": [
+        "row-oriented layouts colocate fields from one record and suit many point reads or writes",
+        "column-oriented layouts colocate values from one column and can improve compression and analytical scans",
+        "real systems use indexing, caching, vectorization, or hybrid layouts that make workload-specific measurement necessary"
+      ],
+      "required_sources": ["database system documentation", "peer-reviewed storage or query-processing research"],
+      "forbidden_hallucinations": ["claiming column stores cannot support updates", "claiming storage layout alone determines total system performance"],
+      "judge_rubric": ["connect layout to access pattern", "cover compression and updates", "acknowledge hybrid implementations"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_compare_en_03",
+      "question": "How do LoRA and prompt tuning differ in trainable parameters, adaptation mechanism, and deployment trade-offs?",
+      "language": "en",
+      "domain": "machine_learning",
+      "task_type": "comparative_research",
+      "expected_claims": [
+        "LoRA learns low-rank updates to selected model weight transformations while freezing base weights",
+        "prompt tuning learns continuous prompt representations while leaving the underlying model weights frozen",
+        "quality, memory, serving, and task-transfer trade-offs depend on model scale, insertion choices, and workload"
+      ],
+      "required_sources": ["LoRA and prompt-tuning original papers", "reproducible parameter-efficient tuning studies"],
+      "forbidden_hallucinations": ["claiming either method always matches full fine-tuning", "treating textual prompting and learned prompt tuning as identical"],
+      "judge_rubric": ["compare adaptation mechanisms", "quantify parameter differences with context", "discuss serving and quality trade-offs"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_compare_en_04",
+      "question": "What can randomized controlled trials and observational studies each establish about causal effects, and where do their limitations differ?",
+      "language": "en",
+      "domain": "research_methods",
+      "task_type": "comparative_research",
+      "expected_claims": [
+        "random assignment can reduce confounding in estimating an intervention effect under a valid trial design",
+        "observational studies can examine exposures or populations that are infeasible or unethical to randomize",
+        "both designs remain vulnerable to distinct biases and require assumptions for causal interpretation and generalization"
+      ],
+      "required_sources": ["causal inference methodological literature", "reporting or evidence-assessment guidance"],
+      "forbidden_hallucinations": ["claiming every randomized trial is unbiased", "claiming observational evidence can never contribute to causal inference"],
+      "judge_rubric": ["compare identification assumptions", "cover internal and external validity", "avoid a simplistic evidence hierarchy"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "rb40_compare_en_05",
+      "question": "How should teams compare long-running containers with serverless functions for application deployment?",
+      "language": "en",
+      "domain": "cloud_computing",
+      "task_type": "comparative_research",
+      "expected_claims": [
+        "containers provide a portable packaging and runtime boundary but still require an execution platform and operational management",
+        "serverless functions abstract more infrastructure and commonly use event-driven scaling and metered execution",
+        "latency, execution duration, state, portability, observability, and cost shape the choice"
+      ],
+      "required_sources": ["container and serverless platform documentation", "independent cloud systems research or measured engineering reports"],
+      "forbidden_hallucinations": ["claiming serverless has zero servers or operations", "claiming containers always cost less at every load level"],
+      "judge_rubric": ["compare responsibility boundaries", "cover scaling and workload constraints", "give conditional cost and portability conclusions"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "rb40_trend_en_01",
+      "question": "How did retrieval-augmented generation evolve from 2020 through 2025, and which reliability problems remained unresolved?",
+      "language": "en",
+      "domain": "information_retrieval",
+      "task_type": "trend_analysis",
+      "expected_claims": [
+        "early RAG work combined learned retrieval with generation for knowledge-intensive tasks",
+        "later systems expanded retrieval, reranking, tool use, indexing, and corrective or agentic control",
+        "retrieval misses, unsupported synthesis, evaluation validity, freshness, and cost remained open reliability problems"
+      ],
+      "required_sources": ["representative 2020-2025 RAG papers", "RAG evaluation surveys or benchmark studies"],
+      "forbidden_hallucinations": ["claiming RAG guarantees factual answers", "presenting a single benchmark gain as universal reliability"],
+      "judge_rubric": ["provide a dated technical timeline", "separate retrieval and generation advances", "identify unresolved evidence-grounding problems"],
+      "difficulty": "hard",
+      "time_range": "2020-2025"
+    },
+    {
+      "id": "rb40_trend_en_02",
+      "question": "How did passkey and WebAuthn deployment develop from 2020 through 2025, and which interoperability and recovery issues remained?",
+      "language": "en",
+      "domain": "security",
+      "task_type": "trend_analysis",
+      "expected_claims": [
+        "WebAuthn and FIDO standards established phishing-resistant public-key authentication foundations",
+        "multi-device credentials and major platform support expanded consumer passkey deployment",
+        "account recovery, ecosystem portability, enterprise policy, and user migration remained deployment challenges"
+      ],
+      "required_sources": ["W3C or FIDO standards and deployment records", "major platform documentation and independent security analysis"],
+      "forbidden_hallucinations": ["claiming passkeys completely replaced passwords by 2025", "treating every vendor synchronization design as equivalent"],
+      "judge_rubric": ["build a dated standards and deployment timeline", "separate protocol properties from platform implementation", "cover recovery and interoperability limits"],
+      "difficulty": "hard",
+      "time_range": "2020-2025"
+    },
+    {
+      "id": "rb40_trend_en_03",
+      "question": "How did confidential-computing technologies evolve from 2020 through 2025, and what trust and deployment limitations remained?",
+      "language": "en",
+      "domain": "security",
+      "task_type": "trend_analysis",
+      "expected_claims": [
+        "hardware-backed trusted execution environments expanded from process or enclave designs toward protected virtual machines and cloud services",
+        "remote attestation and ecosystem standards became important for verifying protected workloads",
+        "side channels, trusted-computing-base scope, performance, supply-chain trust, and operational complexity remained limitations"
+      ],
+      "required_sources": ["hardware and cloud-provider technical documentation", "standards or peer-reviewed confidential-computing research"],
+      "forbidden_hallucinations": ["claiming confidential computing removes the need to trust hardware vendors", "claiming encryption in use prevents every side channel"],
+      "judge_rubric": ["provide a dated technology progression", "explain attestation and trust boundaries", "cover security and operational limitations"],
+      "difficulty": "hard",
+      "time_range": "2020-2025"
+    },
+    {
+      "id": "rb40_trend_en_04",
+      "question": "How did lithium-ion battery recycling technologies and policy develop from 2020 through 2025, and what barriers remained to closed-loop supply chains?",
+      "language": "en",
+      "domain": "energy_storage",
+      "task_type": "trend_analysis",
+      "expected_claims": [
+        "pyrometallurgical, hydrometallurgical, and direct-recycling routes recover different materials with different process trade-offs",
+        "battery traceability and producer-responsibility policies expanded in major markets during the period",
+        "collection, pack diversity, economics, recovered-material quality, and scaling remained barriers to closed-loop supply"
+      ],
+      "required_sources": ["government or regulator battery policy", "peer-reviewed recycling research and industry-scale evidence"],
+      "forbidden_hallucinations": ["claiming every recycling route recovers all battery materials", "using laboratory recovery yield as proof of commercial closed-loop operation"],
+      "judge_rubric": ["provide a dated technology and policy timeline", "compare recycling routes", "connect technical performance to collection and economics"],
+      "difficulty": "hard",
+      "time_range": "2020-2025"
+    },
+    {
+      "id": "rb40_controversy_zh_01",
+      "question": "氢能在钢铁、化工等难减排工业脱碳中的作用和主要争议是什么？",
+      "language": "zh",
+      "domain": "energy_policy",
+      "task_type": "controversy_multihop",
+      "expected_claims": [
+        "低排放氢可替代部分工业过程中的化石燃料原料或还原剂",
+        "实际减排取决于制氢能源、甲烷泄漏、运输储存和转换效率",
+        "成本、基础设施、清洁电力供给和替代技术决定适用范围"
+      ],
+      "required_sources": ["IEA 或政府工业脱碳报告", "同行评审生命周期或项目研究", "包含支持与限制视角"],
+      "forbidden_hallucinations": ["把所有颜色标签的氢都视为零排放", "宣称氢能应替代所有直接电气化方案"],
+      "judge_rubric": ["区分制氢路径和工业用途", "比较全生命周期排放", "呈现成本、基础设施和替代路线争议"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "rb40_controversy_zh_02",
+      "question": "生成式 AI 编程助手对开发效率、代码质量和软件安全的影响可以得出哪些结论？",
+      "language": "zh",
+      "domain": "software_engineering",
+      "task_type": "controversy_multihop",
+      "expected_claims": [
+        "部分受控实验和现场研究观察到特定任务或开发者群体的完成时间改善",
+        "生产率结果依赖任务、经验、采用方式和衡量口径，不能简单外推",
+        "生成代码可能引入正确性、安全、许可证和过度依赖风险，需要审查和测试"
+      ],
+      "required_sources": ["同行评审或设计透明的开发者研究", "代码质量与安全实证研究", "多个工具或任务环境"],
+      "forbidden_hallucinations": ["宣称 AI 编程助手对所有开发者都稳定提升同一比例", "把代码生成速度直接等同于软件交付质量"],
+      "judge_rubric": ["比较研究设计与测量口径", "分开效率、质量和安全", "说明异质性与因果限制"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "rb40_controversy_en_01",
+      "question": "What does the evidence show about four-day workweeks and their effects on productivity, worker well-being, and organizational sustainability?",
+      "language": "en",
+      "domain": "workplace",
+      "task_type": "controversy_multihop",
+      "expected_claims": [
+        "some trials report improved employee well-being and maintained or improved selected output measures",
+        "selection, short follow-up, self-reporting, sector mix, and work redesign limit broad causal generalization",
+        "outcomes depend on whether hours, workload, staffing, and performance expectations change together"
+      ],
+      "required_sources": ["peer-reviewed or transparently designed workplace trials", "independent labor or organizational research", "multiple sectors"],
+      "forbidden_hallucinations": ["claiming a four-day week always raises productivity", "treating participating organizations as a representative random sample of all employers"],
+      "judge_rubric": ["compare objective and self-reported outcomes", "assess study design and selection", "state organizational and sector conditions"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "rb40_controversy_en_02",
+      "question": "What can be concluded about carbon pricing's effects on emissions, economic activity, and distributional equity?",
+      "language": "en",
+      "domain": "climate_policy",
+      "task_type": "controversy_multihop",
+      "expected_claims": [
+        "carbon taxes and emissions-trading systems create a price incentive to reduce covered emissions",
+        "observed effects depend on price level, coverage, complementary policy, market design, and counterfactual estimation",
+        "distributional outcomes depend strongly on how revenue is recycled and how household and industry exposure differs"
+      ],
+      "required_sources": ["government or international-organization policy data", "peer-reviewed causal or quasi-experimental studies", "distributional analysis"],
+      "forbidden_hallucinations": ["claiming every carbon price produces the same emissions reduction", "claiming carbon pricing is inherently regressive regardless of revenue use"],
+      "judge_rubric": ["compare policy designs and identification methods", "separate emissions, economic, and equity outcomes", "state uncertainty and jurisdictional heterogeneity"],
+      "difficulty": "hard"
+    }
+  ],
+  "expected_count": 40,
+  "knowledge_cutoff_at": "2026-10-30"
+}

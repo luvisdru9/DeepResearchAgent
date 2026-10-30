@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "records": [
+    {
+      "experiment_id": "20261013_b2_claim_citation_process_v1",
+      "status": "completed",
+      "path": "records/20261013_b2_claim_citation_process_v1/record.json"
+    },
+    {
+      "experiment_id": "20261013_b3_judge_calibration_v1",
+      "status": "partial",
+      "path": "records/20261013_b3_judge_calibration_v1/record.json"
+    },
+    {
+      "experiment_id": "20261016_b3_current_reports_three_judge_v1",
+      "status": "partial",
+      "path": "records/20261016_b3_current_reports_three_judge_v1/record.json"
+    }
+  ]
+}

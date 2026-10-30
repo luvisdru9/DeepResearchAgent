@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "snapshot_id": "bench_003_20261012_v1",
+  "sample_id": "bench_003",
+  "benchmark_version": "0.1.0",
+  "captured_at": "2026-10-31T00:00:00Z",
+  "provider": "project_authored_fixture",
+  "queries": [
+    {
+      "id": "fixture_q1",
+      "query": "Synthetic offline query for bench_003",
+      "result_source_ids": [
+        "b003_plan",
+        "b003_red_blue"
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "source_id": "b003_plan",
+      "path": "documents/b003_plan.json",
+      "content_hash": "sha256:b0c80a317a6f1e07502c0b748bec22d3c36c3b76b689fe3967d34fc14969ea33"
+    },
+    {
+      "source_id": "b003_red_blue",
+      "path": "documents/b003_red_blue.json",
+      "content_hash": "sha256:0adab0dd2db48c34d094605b72bcb61216150ca13335a7fa6bccf051db8b7ae1"
+    }
+  ],
+  "content_hash": "sha256:f08f758f680e3146f7d5d3693cd563a4b0ba340f06368999f0e573e11b7c7f5c"
+}

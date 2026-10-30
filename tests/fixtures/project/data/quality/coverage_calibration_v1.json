@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "description": "Hand-reviewed lexical fixtures for deterministic comparison coverage diagnostics.",
+  "cases": [
+    {
+      "id": "goal_tailored_for",
+      "text": "RAGTruth is a corpus tailored for analyzing word-level hallucinations.",
+      "present_dimensions": ["goal", "data"]
+    },
+    {
+      "id": "goal_chinese_aim",
+      "text": "该基准旨在评测长文本回答的引用质量。",
+      "present_dimensions": ["goal", "data", "metrics"]
+    },
+    {
+      "id": "data_dataset_samples",
+      "text": "The dataset contains 10,000 samples across three tasks.",
+      "present_dimensions": ["data"]
+    },
+    {
+      "id": "metrics_precision_recall",
+      "text": "Evaluation reports precision and recall for citation correctness.",
+      "present_dimensions": ["metrics"]
+    },
+    {
+      "id": "scope_application_domain",
+      "text": "The intended application is English-language question answering in the medical domain.",
+      "present_dimensions": ["scope"]
+    },
+    {
+      "id": "negative_claims_metadata",
+      "text": "Claim identifiers are stored in metadata fields.",
+      "present_dimensions": []
+    },
+    {
+      "id": "negative_database",
+      "text": "The implementation writes records to a database table.",
+      "present_dimensions": []
+    },
+    {
+      "id": "negative_generic_description",
+      "text": "The paper describes a system architecture and implementation details.",
+      "present_dimensions": []
+    }
+  ]
+}

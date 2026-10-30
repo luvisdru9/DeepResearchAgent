@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepresearchagent.local/schemas/experiment-record-1.0.json",
+  "title": "DeepResearchAgent Experiment Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "recorded_at",
+    "record_type",
+    "status",
+    "objective",
+    "code",
+    "system",
+    "benchmark",
+    "evaluation",
+    "results",
+    "comparison",
+    "artifacts",
+    "limitations",
+    "next_actions"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "experiment_id": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+$"},
+    "revision_of": {"type": ["string", "null"]},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "record_type": {
+      "enum": ["framework_baseline", "quality_evaluation", "performance", "ablation", "regression"]
+    },
+    "status": {"enum": ["planned", "running", "completed", "partial", "failed"]},
+    "objective": {"type": "string", "minLength": 1},
+    "code": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["git_commit", "worktree_state", "python_version", "conda_environment", "config"],
+      "properties": {
+        "git_commit": {"type": ["string", "null"]},
+        "worktree_state": {"enum": ["clean", "dirty", "unknown"]},
+        "python_version": {"type": "string"},
+        "conda_environment": {"type": "string"},
+        "config": {
+          "type": "object",
+          "required": ["path", "sha256", "overrides"],
+          "properties": {
+            "path": {"type": "string"},
+            "sha256": {"type": ["string", "null"]},
+            "overrides": {"type": "object"}
+          }
+        },
+        "dependencies": {"type": "object"}
+      }
+    },
+    "system": {
+      "type": "object",
+      "required": ["pipeline", "components", "capabilities"],
+      "properties": {
+        "pipeline": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "implementation", "enabled"],
+            "properties": {
+              "name": {"type": "string"},
+              "implementation": {"type": "string"},
+              "provider": {"type": ["string", "null"]},
+              "enabled": {"type": "boolean"},
+              "notes": {"type": "string"}
+            }
+          }
+        },
+        "capabilities": {"type": "object"}
+      }
+    },
+    "benchmark": {
+      "type": ["object", "null"],
+      "required": ["id", "path", "schema_version", "version", "track", "sample_count", "status"],
+      "properties": {
+        "id": {"type": "string"},
+        "path": {"type": "string"},
+        "sha256": {"type": ["string", "null"]},
+        "schema_version": {"type": "string"},
+        "version": {"type": "string"},
+        "track": {"type": "string"},
+        "sample_count": {"type": "integer", "minimum": 0},
+        "sample_ids": {"type": "array", "items": {"type": "string"}},
+        "task_types": {"type": "array", "items": {"type": "string"}},
+        "snapshot_hashes": {"type": "object"},
+        "status": {"enum": ["draft", "reviewed", "released", "not_applicable"]}
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "required": ["protocol", "metric_definitions"],
+      "properties": {
+        "protocol": {"type": "object"},
+        "metric_definitions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/metricDefinition"}
+        }
+      }
+    },
+    "results": {
+      "type": "object",
+      "required": ["outcome", "engineering_checks", "metrics"],
+      "properties": {
+        "outcome": {"type": "string"},
+        "engineering_checks": {"type": "array", "items": {"type": "object"}},
+        "metrics": {"type": "array", "items": {"$ref": "#/$defs/metricResult"}},
+        "observations": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "required": ["group", "comparability", "baseline_experiment_id", "changed_variables", "notes"],
+      "properties": {
+        "group": {"type": ["string", "null"]},
+        "comparability": {"enum": ["direct", "partial", "none"]},
+        "baseline_experiment_id": {"type": ["string", "null"]},
+        "changed_variables": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "string"}
+      }
+    },
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "next_actions": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "metricDefinition": {
+      "type": "object",
+      "required": ["name", "category", "direction", "unit", "definition", "implementation_status"],
+      "properties": {
+        "name": {"type": "string"},
+        "category": {"enum": ["report", "evidence", "retrieval", "engineering", "resource"]},
+        "direction": {"enum": ["higher_better", "lower_better", "descriptive"]},
+        "unit": {"type": "string"},
+        "definition": {"type": "string"},
+        "implementation_status": {"enum": ["implemented", "provisional", "planned"]},
+        "limitations": {"type": "string"}
+      }
+    },
+    "metricResult": {
+      "type": "object",
+      "required": ["name", "status", "value"],
+      "properties": {
+        "name": {"type": "string"},
+        "status": {"enum": ["measured", "not_measured", "invalid", "not_applicable"]},
+        "value": {"type": ["number", "string", "boolean", "null"]},
+        "unit": {"type": ["string", "null"]},
+        "notes": {"type": "string"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["type", "path", "exists"],
+      "properties": {
+        "type": {"type": "string"},
+        "path": {"type": "string"},
+        "run_id": {"type": ["string", "null"]},
+        "exists": {"type": "boolean"},
+        "notes": {"type": "string"}
+      }
+    }
+  }
+}

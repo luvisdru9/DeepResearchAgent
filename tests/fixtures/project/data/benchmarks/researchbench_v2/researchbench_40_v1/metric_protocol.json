@@ -1,0 +1,63 @@
+{
+  "protocol_id": "researchbench40_metrics_v1",
+  "version": "1.0.0",
+  "evaluation_executed": false,
+  "citation_coverage_term": "citation_completeness",
+  "primary_aggregation": "macro_average_over_samples",
+  "secondary_aggregation": "micro_average_over_atomic_claims",
+  "aggregation": {
+    "primary": "sample_macro_average",
+    "secondary": "atomic_claim_micro_average",
+    "future_system_comparison": "paired_sample_difference_with_bootstrap_95_percent_ci"
+  },
+  "metrics": {
+    "weighted_gold_claim_recall": {
+      "numerator": "sum(required_claim_weight * coverage_score)",
+      "denominator": "sum(required_claim_weight)",
+      "scores": {"covered": 1.0, "partially_covered": 0.5, "not_covered": 0.0}
+    },
+    "citation_existence": {
+      "numerator": "factual_claims_with_valid_citation_marker",
+      "denominator": "factual_claims_requiring_citation"
+    },
+    "citation_correctness": {
+      "numerator": "cited_claims_semantically_supported_by_cited_evidence",
+      "denominator": "factual_claims_with_valid_citation_marker"
+    },
+    "citation_completeness": {
+      "numerator": "factual_claims_semantically_supported_by_valid_cited_evidence",
+      "denominator": "factual_claims_requiring_citation",
+      "public_label": "citation_coverage"
+    },
+    "hallucination_rate": {
+      "numerator": "unsupported + contradicted + miscited + 0.5 * partially_supported",
+      "denominator": "factual_claim_count",
+      "uncited_policy": "uncited is a completeness error unless semantic review also labels it unsupported"
+    },
+    "required_source_recall": {
+      "numerator": "retrieved_required_source_count",
+      "denominator": "required_source_count"
+    },
+    "primary_source_ratio": {
+      "numerator": "unique_primary_or_official_sources",
+      "denominator": "unique_sources"
+    },
+    "evidence_yield": {
+      "numerator": "valid_evidence_count",
+      "denominator": "unique_sources"
+    },
+    "resource": {
+      "fields": ["llm_calls", "provider_retries", "input_tokens", "output_tokens", "latency_seconds", "cost_usd"],
+      "judge_resources_separate": true
+    }
+  },
+  "comparison": {
+    "design": "paired_by_sample",
+    "confidence_interval": "bootstrap_95_percent",
+    "failed_runs_reported_separately": true,
+    "silent_failure_exclusion": false
+  },
+  "legacy_compatibility": {
+    "citation_coverage": "legacy alias for citation_existence; do not use as formal citation completeness"
+  }
+}

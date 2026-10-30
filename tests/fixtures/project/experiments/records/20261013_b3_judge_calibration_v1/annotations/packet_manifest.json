@@ -1,0 +1,19 @@
+{
+  "schema_version": "synthetic-1.0",
+  "status": "frozen_pending_human_annotation",
+  "handoff_ready": true,
+  "files": [
+    {
+      "path": "annotator_a_pending.json",
+      "sha256": "dec8062eb7fd268a93e9c1266ca250ca5765a2d3818a8e8556f103017574d390"
+    },
+    {
+      "path": "annotator_b_pending.json",
+      "sha256": "dec8062eb7fd268a93e9c1266ca250ca5765a2d3818a8e8556f103017574d390"
+    },
+    {
+      "path": "adjudicator_pending.json",
+      "sha256": "dec8062eb7fd268a93e9c1266ca250ca5765a2d3818a8e8556f103017574d390"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "snapshot_id": "bench_001_20261012_v1",
+  "sample_id": "bench_001",
+  "benchmark_version": "0.1.0",
+  "captured_at": "2026-10-31T00:00:00Z",
+  "provider": "project_authored_fixture",
+  "queries": [
+    {
+      "id": "fixture_q1",
+      "query": "Synthetic offline query for bench_001",
+      "result_source_ids": [
+        "b001_plan",
+        "b001_multi_agent"
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "source_id": "b001_plan",
+      "path": "documents/b001_plan.json",
+      "content_hash": "sha256:1d612af8ecb2c53dd609f16d0b049d841801d2e00a110eeecfd2742d81dc1085"
+    },
+    {
+      "source_id": "b001_multi_agent",
+      "path": "documents/b001_multi_agent.json",
+      "content_hash": "sha256:ada9551b3df99687c73c0acaba6b29ff4ee76d9e2835d8cb4f9c32c4c8f39a35"
+    }
+  ],
+  "content_hash": "sha256:293515649b9f43b15485465d0135cda228bc0fc541da790e43133cc222fe80ff"
+}

@@ -1,0 +1,38 @@
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+
+# Local credentials and provider-specific environment files. Keep only the
+# placeholder template in version control.
+.env
+.env.*
+!.env.example
+
+# Build and runtime artifacts.
+dist/
+build/
+*.egg-info/
+runs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Local IDE, coding-agent, and cloud-client state must not enter a public repo.
+.vscode/
+.idea/
+.agents/
+.codex/
+.aws/
+
+# Locally collected interview/reference material is not project source and may
+# contain third-party copyrighted content.
+reference/
+
+# Common operating-system metadata.
+.DS_Store
+Thumbs.db

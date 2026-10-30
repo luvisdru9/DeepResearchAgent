@@ -1,0 +1,341 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "20261013_b3_judge_calibration_v1",
+  "revision_of": null,
+  "recorded_at": "2026-10-12T17:51:56Z",
+  "record_type": "quality_evaluation",
+  "status": "partial",
+  "objective": "完成 B3 的固定 Judge 协议、重复裁判、加权 gold-claim recall、双人标注包和校准工具，并明确区分自动一致性与尚未完成的人工校准。",
+  "code": {
+    "git_commit": "8cf401eab2fd32d9970ed098f581e37af7345d82",
+    "worktree_state": "dirty",
+    "python_version": "3.11.15",
+    "conda_environment": "deepresearch",
+    "config": {
+      "path": "configs/default.yaml",
+      "sha256": "sha256:60d7571d32cc9109ed8b1c10be6cd3a612d02ef60578bb355e26fb25dedbe39c",
+      "overrides": {
+        "generation": "reuse B2 frozen reports; no Planner/Reader/Synthesizer rerun",
+        "evaluation.provider": "llm",
+        "evaluation.llm_profile": "evaluator_deepseek",
+        "evaluation.judge_repetitions": 2,
+        "evaluation.judge_protocol_version": "1.0",
+        "evaluation.judge_shuffle_claims": true,
+        "evaluation.judge_random_seed": 20261013
+      }
+    },
+    "dependencies": {
+      "pydantic": "2.13.4",
+      "numpy": "2.4.6",
+      "httpx": "0.28.1"
+    }
+  },
+  "system": {
+    "pipeline": [
+      "existing frozen reports",
+      "stable atomic report claims",
+      "versioned blind Judge prompt",
+      "repeated shuffled claim judging",
+      "gold-claim weighted recall",
+      "independent human annotation packets",
+      "agreement and calibration metrics"
+    ],
+    "components": [
+      {
+        "name": "JudgeProtocol",
+        "implementation": "Versioned prompt and label contract with SHA-256 fingerprint",
+        "provider": "deterministic_protocol",
+        "enabled": true,
+        "notes": "Fingerprint sha256:f7eb95425dfb573b6aa4a3c91fd543cce766d5bd6cb2096baa5a1d50486631ce."
+      },
+      {
+        "name": "LLMJudge",
+        "implementation": "Two repeated evidence-grounded decisions per frozen report with fixed claim-order seeds",
+        "provider": "deepseek-flash via evaluator_deepseek",
+        "enabled": true,
+        "notes": "Six successful calls; raw traces retained."
+      },
+      {
+        "name": "HumanCalibration",
+        "implementation": "Two independent packets, one adjudication packet, agreement and precision/recall tooling",
+        "provider": "human_pending",
+        "enabled": true,
+        "notes": "Infrastructure is complete, but all human labels remain null/pending."
+      }
+    ],
+    "capabilities": {
+      "judge_protocol_fingerprint": true,
+      "blind_system_identity": true,
+      "deterministic_claim_shuffle": true,
+      "repeated_judge_agreement": true,
+      "weighted_gold_claim_recall": true,
+      "human_annotation_schema": true,
+      "automatic_human_calibration": true,
+      "completed_human_labels": false
+    }
+  },
+  "benchmark": {
+    "id": "researchbench_smoke_v2",
+    "path": "data/benchmarks/researchbench_v2/dataset.json",
+    "sha256": "sha256:3d66a2fb6f0dd7fdded77cc697758f00e31d0834f773eaf4860da9a544cbdf7f",
+    "schema_version": "2.0",
+    "version": "0.1.0",
+    "track": "frozen",
+    "sample_count": 3,
+    "sample_ids": [
+      "bench_001",
+      "bench_002",
+      "bench_003"
+    ],
+    "task_types": [
+      "comparative_research",
+      "fact_qa",
+      "controversy_multihop"
+    ],
+    "snapshot_hashes": {
+      "bench_001": "sha256:4f67f77c5637b57d174b72007319873cb028d5ef7ef2bc5e1a7c75bc5eb2b2d5",
+      "bench_002": "sha256:7e108366251519b73d7c121f34d00c98df127c285c0e141c7839473c0736b2c0",
+      "bench_003": "sha256:e8a40c886a7491985ef0ef938a096a1c4bdf09e1e22a2f89fad5ee4d73e434b1"
+    },
+    "status": "draft"
+  },
+  "evaluation": {
+    "protocol": {
+      "judge_protocol_version": "1.0",
+      "judge_protocol_fingerprint": "sha256:f7eb95425dfb573b6aa4a3c91fd543cce766d5bd6cb2096baa5a1d50486631ce",
+      "judge_profile": "evaluator_deepseek",
+      "model": "deepseek-flash",
+      "repetitions": 2,
+      "shuffle_claims": true,
+      "random_seed": 20261013,
+      "raw_trace_enabled": true,
+      "network_mode": "live_api_for_judge_only",
+      "pilot_thresholds": {
+        "human_simple_agreement_min": 0.8,
+        "human_cohen_kappa_min": 0.6,
+        "automatic_macro_precision_min": 0.75,
+        "automatic_macro_recall_min": 0.75
+      },
+      "notes": "The first restricted-sandbox preflight timed out; the approved external-network run completed all six calls on first attempt."
+    },
+    "metric_definitions": [
+      {
+        "name": "weighted_gold_claim_recall",
+        "category": "report",
+        "direction": "higher_better",
+        "unit": "ratio_0_1",
+        "definition": "Required authored claim weights multiplied by Judge coverage score (covered=1, partial=0.5, missing/contradicted=0), divided by total required weight.",
+        "implementation_status": "provisional",
+        "limitations": "Not calibrated against completed human labels."
+      },
+      {
+        "name": "repeated_judge_agreement",
+        "category": "evidence",
+        "direction": "higher_better",
+        "unit": "ratio_0_1",
+        "definition": "Exact status agreement and Cohen's kappa across repeated Judge decisions aligned by stable claim ID.",
+        "implementation_status": "implemented",
+        "limitations": "Same-model agreement measures repeatability, not correctness."
+      },
+      {
+        "name": "automatic_vs_human_precision_recall",
+        "category": "evidence",
+        "direction": "higher_better",
+        "unit": "ratio_0_1",
+        "definition": "Per-label and macro precision/recall against completed adjudicated human labels.",
+        "implementation_status": "planned",
+        "limitations": "Cannot be measured until two independent annotators and adjudication are complete."
+      }
+    ]
+  },
+  "results": {
+    "outcome": "judge_protocol_and_pilot_passed_human_calibration_pending",
+    "engineering_checks": [
+      {
+        "name": "b3_related_tests",
+        "status": "passed",
+        "value": "27 passed",
+        "duration_seconds": 0.41
+      },
+      {
+        "name": "full_test_suite",
+        "status": "passed",
+        "value": "220 passed",
+        "duration_seconds": 2.21
+      },
+      {
+        "name": "real_judge_calls",
+        "status": "passed",
+        "value": "6/6 DONE; one attempt each"
+      },
+      {
+        "name": "human_annotation_completion",
+        "status": "pending",
+        "value": "0/3 packets completed"
+      }
+    ],
+    "metrics": [
+      {
+        "name": "judge_call_success_rate",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Approved external-network run only."
+      },
+      {
+        "name": "judge_fallback_count",
+        "status": "measured",
+        "value": 0,
+        "unit": "events",
+        "notes": "No rule fallback in the successful pilot."
+      },
+      {
+        "name": "mean_weighted_gold_claim_recall",
+        "status": "measured",
+        "value": 0.2738095238,
+        "unit": "ratio_0_1",
+        "notes": "Per sample: 0.3214285714, 0.0, 0.5."
+      },
+      {
+        "name": "report_claim_status_agreement",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Two same-model repetitions on each of three reports."
+      },
+      {
+        "name": "report_claim_cohen_kappa",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Repeatability only; not human validity."
+      },
+      {
+        "name": "gold_claim_status_agreement",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Two same-model repetitions on each sample."
+      },
+      {
+        "name": "gold_claim_cohen_kappa",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "Repeatability only; not human validity."
+      },
+      {
+        "name": "mean_citation_correctness",
+        "status": "measured",
+        "value": 1.0,
+        "unit": "ratio_0_1",
+        "notes": "All report claims closely reproduce cited Evidence, while task coverage remains low."
+      },
+      {
+        "name": "total_input_tokens",
+        "status": "measured",
+        "value": 16470,
+        "unit": "tokens",
+        "notes": "Six successful Judge calls."
+      },
+      {
+        "name": "total_output_tokens",
+        "status": "measured",
+        "value": 6199,
+        "unit": "tokens",
+        "notes": "Six successful Judge calls."
+      },
+      {
+        "name": "human_simple_agreement",
+        "status": "not_measured",
+        "value": null,
+        "unit": "ratio_0_1",
+        "notes": "Independent human labels are pending."
+      },
+      {
+        "name": "automatic_vs_human_macro_precision",
+        "status": "not_measured",
+        "value": null,
+        "unit": "ratio_0_1",
+        "notes": "Adjudicated human labels are pending."
+      }
+    ],
+    "observations": [
+      "All repeated Judge outputs aligned through stable report-claim and gold-claim IDs despite deterministic input shuffling.",
+      "Citation correctness of 1.0 coexists with low weighted task coverage, demonstrating that evidence support and answer completeness must remain separate metrics.",
+      "The three reports were produced by deterministic rule agents and are useful for protocol validation, not representative final-system quality.",
+      "Same-model kappa of 1.0 cannot establish semantic correctness without independent human labels."
+    ]
+  },
+  "comparison": {
+    "group": "researchbench_v2_b3_calibration",
+    "comparability": "partial",
+    "baseline_experiment_id": "20261013_b2_claim_citation_process_v1",
+    "changed_variables": [
+      "weighted authored-claim recall",
+      "versioned Judge prompt fingerprint",
+      "deterministic claim shuffling",
+      "two repeated real LLM Judge calls per sample",
+      "human annotation and calibration protocol"
+    ],
+    "notes": "The reports and frozen sources are identical to B2, but coverage now uses authored claim weights and semantic Judge labels. Human validity is not yet comparable."
+  },
+  "artifacts": [
+    {
+      "type": "judge_results",
+      "path": "runs/benchmarks/20261012T175156Z_benchmark_evaluation.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "Six-call repeated Judge artifact."
+    },
+    {
+      "type": "annotation_schema",
+      "path": "data/benchmarks/researchbench_v2/schemas/annotation_bundle.schema.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "SHA-256 c01131d6ab5c28ca9bfd5220769a4e158466ab90d5b081b9cfe6ee90d8c7924b."
+    },
+    {
+      "type": "human_annotation_packet",
+      "path": "experiments/records/20261013_b3_judge_calibration_v1/annotations/annotator_a_pending.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "Pending independent annotator A labels."
+    },
+    {
+      "type": "human_annotation_packet",
+      "path": "experiments/records/20261013_b3_judge_calibration_v1/annotations/annotator_b_pending.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "Pending independent annotator B labels."
+    },
+    {
+      "type": "adjudication_packet",
+      "path": "experiments/records/20261013_b3_judge_calibration_v1/annotations/adjudicator_pending.json",
+      "run_id": null,
+      "exists": true,
+      "notes": "Pending disagreement adjudication."
+    },
+    {
+      "type": "judge_traces",
+      "path": "runs/llm_traces",
+      "run_id": null,
+      "exists": true,
+      "notes": "Raw prompts, parsed outputs, token usage and one separate restricted-network timeout trace."
+    }
+  ],
+  "limitations": [
+    "No human labels have been completed; automatic-vs-human precision/recall and human kappa are not measured.",
+    "Both repetitions use the same DeepSeek profile, so agreement may overstate robustness across judge families.",
+    "The reports come from deterministic rule generation and contain evidence-like wording, which makes citation support unusually easy.",
+    "Only three draft Chinese smoke samples were judged; there is no confidence interval or domain/language coverage.",
+    "Provider cost was not returned by the compatible API, so cost_usd remains unavailable.",
+    "The worktree remains dirty; commit hash alone does not reconstruct the implementation."
+  ],
+  "next_actions": [
+    "Have two real annotators complete their packets independently.",
+    "Adjudicate every disagreement and preserve reasons rather than copying automatic labels.",
+    "Run scripts/calibrate_b3_annotations.py and compare report-claim and gold-claim precision/recall, agreement and kappa.",
+    "If calibration meets a predeclared threshold, close B3 and start B4; otherwise revise rubric/protocol and create a new versioned experiment."
+  ]
+}

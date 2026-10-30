@@ -1,0 +1,526 @@
+{
+  "metadata": {
+    "benchmark_id": "researchbench_smoke_v2",
+    "schema_version": "2.0",
+    "version": "0.1.3",
+    "snapshot_base_version": "0.1.0",
+    "track": "frozen",
+    "released_at": "2026-10-12",
+    "knowledge_cutoff_at": null,
+    "language_mix": [
+      "zh"
+    ],
+    "license": "Project-authored synthetic test fixtures.",
+    "dataset_card": "docs/BENCHMARK_DESIGN.md",
+    "change_notes": [
+      "Migrated the three legacy smoke questions into the v2 authoring protocol.",
+      "Added three isolated, hash-verified source snapshots for the B1 offline pilot.",
+      "Added required SourceDoc IDs for B2 required-source recall.",
+      "The pilot covers fact QA, comparative research, and controversy/multi-hop task wiring.",
+      "All samples remain draft fixtures pending independent expert review.",
+      "Revised b001.c3 to match the failure-retry and evidence-lineage facts available in the frozen source snapshot; dataset.json retains the 0.1.0 baseline.",
+      "Added explicit, self-contained satisfaction routes for Judge protocol v5; accepted_variants remain wording aliases only.",
+      "Corrected b003.c2 and b003.c3 routes so every required semantic component is directly supported by the unchanged frozen sources; v0.1.2 remains the preserved over-specified baseline."
+    ]
+  },
+  "samples": [
+    {
+      "id": "bench_001",
+      "question": "多智能体深度研究系统为什么需要 DAG 编排和共享记忆？",
+      "language": "zh",
+      "domain": "agent_system",
+      "task_type": "comparative_research",
+      "difficulty": "medium",
+      "time_range": null,
+      "claims": [
+        {
+          "id": "b001.c1",
+          "text": "DAG 用于表达子任务依赖并支持无依赖节点并发执行",
+          "satisfaction_routes": [
+            {
+              "id": "b001.c1.main",
+              "text": "DAG 用于表达子任务依赖并支持无依赖节点并发执行"
+            }
+          ],
+          "accepted_variants": [
+            "任务图表达依赖关系",
+            "可并发调度独立任务"
+          ],
+          "weight": 1.0,
+          "required": true
+        },
+        {
+          "id": "b001.c2",
+          "text": "共享记忆用于跨 Agent 复用状态、证据和来源血缘",
+          "satisfaction_routes": [
+            {
+              "id": "b001.c2.main",
+              "text": "共享记忆用于跨 Agent 复用状态、证据和来源血缘"
+            }
+          ],
+          "accepted_variants": [
+            "共享中间状态",
+            "减少重复检索并保留证据来源"
+          ],
+          "weight": 1.0,
+          "required": true
+        },
+        {
+          "id": "b001.c3",
+          "text": "DAG 需要记录节点状态并支持失败节点局部重试，共享记忆需要保留证据与来源血缘",
+          "satisfaction_routes": [
+            {
+              "id": "b001.c3.main",
+              "text": "DAG 记录节点执行状态并只重试失败节点，同时共享记忆保留证据及其来源血缘"
+            }
+          ],
+          "accepted_variants": [
+            "失败时只重试局部节点",
+            "节点状态包含失败、重试与超时",
+            "结论可回溯证据来源"
+          ],
+          "weight": 0.8,
+          "required": true
+        }
+      ],
+      "evidence_requirements": [
+        {
+          "id": "b001.e1",
+          "description": "多智能体或工作流编排的一手论文、官方文档或可审计工程实现",
+          "claim_ids": [
+            "b001.c1",
+            "b001.c3"
+          ],
+          "required_source_ids": [
+            "b001_plan"
+          ],
+          "min_independent_sources": 1,
+          "primary_source_required": true,
+          "accepted_source_types": [
+            "research_paper",
+            "official_document",
+            "technical_document"
+          ]
+        },
+        {
+          "id": "b001.e2",
+          "description": "共享记忆、状态持久化或证据血缘的技术资料",
+          "claim_ids": [
+            "b001.c2",
+            "b001.c3"
+          ],
+          "required_source_ids": [
+            "b001_multi_agent"
+          ],
+          "min_independent_sources": 1,
+          "primary_source_required": false,
+          "accepted_source_types": [
+            "research_paper",
+            "official_document",
+            "technical_document"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        {
+          "id": "b001.f1",
+          "text": "声称增加 Agent 数量必然提高研究质量",
+          "severity": "high"
+        }
+      ],
+      "rubric": [
+        {
+          "id": "b001.r1",
+          "dimension": "information_recall",
+          "description": "覆盖 DAG、共享记忆以及失败处理三个必答点",
+          "weight": 1.0,
+          "evaluation_mode": "hybrid",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "三个必答点均未覆盖或严重错误"
+            },
+            {
+              "score": 4,
+              "description": "三个必答点完整覆盖且边界准确"
+            }
+          ]
+        },
+        {
+          "id": "b001.r2",
+          "dimension": "analysis_reasoning",
+          "description": "解释依赖、并发、状态复用和局部失败处理之间的因果关系",
+          "weight": 1.0,
+          "evaluation_mode": "human",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "只有术语罗列，没有因果分析"
+            },
+            {
+              "score": 4,
+              "description": "能够解释各机制的收益、代价和相互作用"
+            }
+          ]
+        },
+        {
+          "id": "b001.r3",
+          "dimension": "citation_quality",
+          "description": "关键工程结论由对应的一手或权威资料支持",
+          "weight": 1.0,
+          "evaluation_mode": "hybrid",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "关键结论无引用或引用不支持"
+            },
+            {
+              "score": 4,
+              "description": "关键结论均有可追溯且语义匹配的引用"
+            }
+          ]
+        }
+      ],
+      "snapshot": {
+        "snapshot_id": "bench_001_20261012_v1",
+        "manifest_path": "snapshots/bench_001_20261012_v1/manifest.json",
+        "content_hash": "sha256:293515649b9f43b15485465d0135cda228bc0fc541da790e43133cc222fe80ff"
+      },
+      "annotator": "project_author_pending",
+      "reviewer": "independent_review_pending",
+      "annotated_at": "2026-10-12",
+      "disagreement_notes": [],
+      "status": "draft"
+    },
+    {
+      "id": "bench_002",
+      "question": "如何评测 DeepResearchAgent 的引用质量和幻觉率？",
+      "language": "zh",
+      "domain": "evaluation",
+      "task_type": "fact_qa",
+      "difficulty": "hard",
+      "time_range": null,
+      "claims": [
+        {
+          "id": "b002.c1",
+          "text": "引用覆盖率衡量需要证据的关键主张中具有引用的比例",
+          "satisfaction_routes": [
+            {
+              "id": "b002.c1.main",
+              "text": "引用覆盖率以需要证据的原子或关键主张为分析单位，分子是具有有效引用的主张数，分母是需要证据的主张总数"
+            }
+          ],
+          "accepted_variants": [
+            "citation completeness",
+            "关键结论引用完整性"
+          ],
+          "weight": 1.0,
+          "required": true
+        },
+        {
+          "id": "b002.c2",
+          "text": "引用正确性需要判断引用内容是否真正蕴含或支持对应主张",
+          "satisfaction_routes": [
+            {
+              "id": "b002.c2.main",
+              "text": "引用正确性检查引用证据是否在语义上蕴含或支持对应主张，而不是只检查引用标记或链接存在"
+            }
+          ],
+          "accepted_variants": [
+            "citation correctness",
+            "引用精确率不能只检查链接存在"
+          ],
+          "weight": 1.2,
+          "required": true
+        },
+        {
+          "id": "b002.c3",
+          "text": "幻觉率应在原子主张层区分无支持、矛盾、错引和无引用陈述",
+          "satisfaction_routes": [
+            {
+              "id": "b002.c3.main",
+              "text": "幻觉核算以原子主张为单位，分别识别或计数无支持、矛盾、错引和无引用陈述"
+            }
+          ],
+          "accepted_variants": [
+            "claim-level hallucination",
+            "逐主张错误类型"
+          ],
+          "weight": 1.2,
+          "required": true
+        }
+      ],
+      "evidence_requirements": [
+        {
+          "id": "b002.e1",
+          "description": "引用生成或长报告评测的一手论文与正式评价协议",
+          "claim_ids": [
+            "b002.c1",
+            "b002.c2"
+          ],
+          "required_source_ids": [
+            "b002_alce"
+          ],
+          "min_independent_sources": 1,
+          "primary_source_required": true,
+          "accepted_source_types": [
+            "research_paper",
+            "official_document"
+          ]
+        },
+        {
+          "id": "b002.e2",
+          "description": "包含细粒度幻觉定义或人工标注协议的研究资料",
+          "claim_ids": [
+            "b002.c3"
+          ],
+          "required_source_ids": [
+            "b002_ragtruth"
+          ],
+          "min_independent_sources": 1,
+          "primary_source_required": true,
+          "accepted_source_types": [
+            "research_paper",
+            "dataset"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        {
+          "id": "b002.f1",
+          "text": "把存在引用链接直接等同于引用正确或没有幻觉",
+          "severity": "high"
+        }
+      ],
+      "rubric": [
+        {
+          "id": "b002.r1",
+          "dimension": "information_recall",
+          "description": "区分引用覆盖、语义支持和主张级幻觉",
+          "weight": 1.2,
+          "evaluation_mode": "hybrid",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "混淆三类指标或只给单一总分"
+            },
+            {
+              "score": 4,
+              "description": "三类指标定义清晰且评价单位明确"
+            }
+          ]
+        },
+        {
+          "id": "b002.r2",
+          "dimension": "analysis_reasoning",
+          "description": "说明自动评分、LLM Judge 和人工复核的偏差与组合方式",
+          "weight": 1.0,
+          "evaluation_mode": "human",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "未讨论评分可靠性与校准"
+            },
+            {
+              "score": 4,
+              "description": "给出可执行的多层评测和校准方案"
+            }
+          ]
+        },
+        {
+          "id": "b002.r3",
+          "dimension": "citation_quality",
+          "description": "指标定义和评测建议由对应证据直接支持",
+          "weight": 1.2,
+          "evaluation_mode": "hybrid",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "没有引用或将来源内容错误扩展"
+            },
+            {
+              "score": 4,
+              "description": "关键指标均有语义匹配且可回溯的引用"
+            }
+          ]
+        }
+      ],
+      "snapshot": {
+        "snapshot_id": "bench_002_20261012_v1",
+        "manifest_path": "snapshots/bench_002_20261012_v1/manifest.json",
+        "content_hash": "sha256:bf5a2231a1408ec5bf70f967d3d5d36605f5938a5f5d262b64b1c650ce52bb53"
+      },
+      "annotator": "project_author_pending",
+      "reviewer": "independent_review_pending",
+      "annotated_at": "2026-10-12",
+      "disagreement_notes": [],
+      "status": "draft"
+    },
+    {
+      "id": "bench_003",
+      "question": "Red-Blue 对抗核查如何改进深度研究报告？",
+      "language": "zh",
+      "domain": "verification",
+      "task_type": "controversy_multihop",
+      "difficulty": "medium",
+      "time_range": null,
+      "claims": [
+        {
+          "id": "b003.c1",
+          "text": "Red 负责主动寻找事实错误、弱引用、逻辑跳跃和遗漏视角",
+          "satisfaction_routes": [
+            {
+              "id": "b003.c1.main",
+              "text": "Red 主动检查报告中的事实错误、弱引用、逻辑跳跃和遗漏视角"
+            }
+          ],
+          "accepted_variants": [
+            "对抗式审查",
+            "主动攻击报告缺陷"
+          ],
+          "weight": 1.0,
+          "required": true
+        },
+        {
+          "id": "b003.c2",
+          "text": "Blue 在 Red 指出问题后依据证据修订报告",
+          "satisfaction_routes": [
+            {
+              "id": "b003.c2.main",
+              "text": "Blue 在 Red 指出报告问题后依据已有 Evidence 修订报告"
+            }
+          ],
+          "accepted_variants": [
+            "证据约束修订",
+            "Blue 根据证据修订"
+          ],
+          "weight": 1.0,
+          "required": true
+        },
+        {
+          "id": "b003.c3",
+          "text": "Verifier 在 Blue 修订后重新核验并标记仍存在的不确定性",
+          "satisfaction_routes": [
+            {
+              "id": "b003.c3.main",
+              "text": "Verifier 在 Blue 修订后重新核验报告，并标记仍然存在的不确定性"
+            }
+          ],
+          "accepted_variants": [
+            "修订后复核",
+            "标记仍存在的不确定性"
+          ],
+          "weight": 1.0,
+          "required": true
+        }
+      ],
+      "evidence_requirements": [
+        {
+          "id": "b003.e1",
+          "description": "对抗式验证、反思或事实核查的一手研究资料",
+          "claim_ids": [
+            "b003.c1",
+            "b003.c2",
+            "b003.c3"
+          ],
+          "required_source_ids": [
+            "b003_red_blue"
+          ],
+          "min_independent_sources": 1,
+          "primary_source_required": true,
+          "accepted_source_types": [
+            "research_paper",
+            "official_document"
+          ]
+        },
+        {
+          "id": "b003.e2",
+          "description": "记录攻击、修订和复核状态的可审计工程资料",
+          "claim_ids": [
+            "b003.c2",
+            "b003.c3"
+          ],
+          "required_source_ids": [
+            "b003_plan"
+          ],
+          "min_independent_sources": 1,
+          "primary_source_required": false,
+          "accepted_source_types": [
+            "technical_document",
+            "research_paper"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        {
+          "id": "b003.f1",
+          "text": "声称 Red-Blue 流程可以保证报告完全没有幻觉",
+          "severity": "high"
+        }
+      ],
+      "rubric": [
+        {
+          "id": "b003.r1",
+          "dimension": "information_recall",
+          "description": "覆盖攻击、证据约束修订和最终复核三阶段",
+          "weight": 1.0,
+          "evaluation_mode": "hybrid",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "缺失两个以上阶段或职责错误"
+            },
+            {
+              "score": 4,
+              "description": "三阶段职责、输入输出和边界均准确"
+            }
+          ]
+        },
+        {
+          "id": "b003.r2",
+          "dimension": "analysis_reasoning",
+          "description": "解释质量收益、额外成本和循环停止条件",
+          "weight": 1.0,
+          "evaluation_mode": "human",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "只描述角色名称，没有机制与代价"
+            },
+            {
+              "score": 4,
+              "description": "分析修订闭环、成本和防止无限循环的约束"
+            }
+          ]
+        },
+        {
+          "id": "b003.r3",
+          "dimension": "citation_quality",
+          "description": "对抗核查机制和效果边界由相关来源支持",
+          "weight": 1.0,
+          "evaluation_mode": "hybrid",
+          "anchors": [
+            {
+              "score": 0,
+              "description": "机制或效果结论无来源支持"
+            },
+            {
+              "score": 4,
+              "description": "关键机制与局限均有可追溯引用"
+            }
+          ]
+        }
+      ],
+      "snapshot": {
+        "snapshot_id": "bench_003_20261012_v1",
+        "manifest_path": "snapshots/bench_003_20261012_v1/manifest.json",
+        "content_hash": "sha256:f08f758f680e3146f7d5d3693cd563a4b0ba340f06368999f0e573e11b7c7f5c"
+      },
+      "annotator": "project_author_pending",
+      "reviewer": "independent_review_pending",
+      "annotated_at": "2026-10-12",
+      "disagreement_notes": [],
+      "status": "draft"
+    }
+  ]
+}

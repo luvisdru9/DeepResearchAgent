@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bench_001",
+    "question": "多智能体深度研究系统为什么需要 DAG 编排和共享记忆？",
+    "domain": "agent_system",
+    "expected_claims": ["dag", "共享记忆", "证据"]
+  },
+  {
+    "id": "bench_002",
+    "question": "如何评测 DeepResearchAgent 的引用质量和幻觉率？",
+    "domain": "evaluation",
+    "expected_claims": ["citation coverage", "citation precision", "hallucination rate"]
+  },
+  {
+    "id": "bench_003",
+    "question": "Red-Blue 对抗核查如何改进深度研究报告？",
+    "domain": "verification",
+    "expected_claims": ["red agent", "blue agent", "幻觉"]
+  }
+]
